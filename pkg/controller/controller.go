@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	apexv1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
+	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"

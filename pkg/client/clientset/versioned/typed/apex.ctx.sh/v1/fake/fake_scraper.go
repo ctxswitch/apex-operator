@@ -21,7 +21,7 @@ package fake
 import (
 	"context"
 
-	apexctxshv1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
+	apexctxshv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

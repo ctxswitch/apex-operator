@@ -22,8 +22,8 @@ import (
 	"context"
 	"time"
 
-	v1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
-	scheme "ctx.sh/apex/pkg/client/clientset/versioned/scheme"
+	v1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
+	scheme "ctx.sh/apex-operator/pkg/client/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

@@ -1,7 +1,7 @@
 package v1
 
 import (
-	apex "ctx.sh/apex/pkg/apis/apex.ctx.sh"
+	apex "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

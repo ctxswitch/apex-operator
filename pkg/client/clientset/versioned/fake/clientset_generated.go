@@ -19,9 +19,9 @@
 package fake
 
 import (
-	clientset "ctx.sh/apex/pkg/client/clientset/versioned"
-	apexv1 "ctx.sh/apex/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
-	fakeapexv1 "ctx.sh/apex/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1/fake"
+	clientset "ctx.sh/apex-operator/pkg/client/clientset/versioned"
+	apexv1 "ctx.sh/apex-operator/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
+	fakeapexv1 "ctx.sh/apex-operator/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

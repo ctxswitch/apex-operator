@@ -19,7 +19,7 @@
 package fake
 
 import (
-	v1 "ctx.sh/apex/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
+	v1 "ctx.sh/apex-operator/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

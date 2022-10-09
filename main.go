@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
-	apexv1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
-	"ctx.sh/apex/pkg/controller"
+	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
+	"ctx.sh/apex-operator/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"

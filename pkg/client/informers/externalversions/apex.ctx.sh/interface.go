@@ -19,8 +19,8 @@
 package apex
 
 import (
-	v1 "ctx.sh/apex/pkg/client/informers/externalversions/apex.ctx.sh/v1"
-	internalinterfaces "ctx.sh/apex/pkg/client/informers/externalversions/internalinterfaces"
+	v1 "ctx.sh/apex-operator/pkg/client/informers/externalversions/apex.ctx.sh/v1"
+	internalinterfaces "ctx.sh/apex-operator/pkg/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

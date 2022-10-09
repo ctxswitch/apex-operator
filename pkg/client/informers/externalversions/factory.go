@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "ctx.sh/apex/pkg/client/clientset/versioned"
-	apexctxsh "ctx.sh/apex/pkg/client/informers/externalversions/apex.ctx.sh"
-	internalinterfaces "ctx.sh/apex/pkg/client/informers/externalversions/internalinterfaces"
+	versioned "ctx.sh/apex-operator/pkg/client/clientset/versioned"
+	apexctxsh "ctx.sh/apex-operator/pkg/client/informers/externalversions/apex.ctx.sh"
+	internalinterfaces "ctx.sh/apex-operator/pkg/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

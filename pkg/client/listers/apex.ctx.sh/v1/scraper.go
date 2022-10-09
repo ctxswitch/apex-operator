@@ -19,7 +19,7 @@
 package v1
 
 import (
-	v1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
+	v1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"

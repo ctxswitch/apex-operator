@@ -50,10 +50,10 @@ govet:
 gotest:
 	@go test -race ./...
 
-generate:
+generate: controller-gen
 	@./k8s/update-codegen.sh
 
-regen-crd: controller-gen
+manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=apex-role webhook paths="./pkg/apis/..." output:crd:artifacts:config=$(KUSTOMIZE_CRDS)
 	go mod tidy
 

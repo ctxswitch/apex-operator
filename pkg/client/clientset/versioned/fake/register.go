@@ -19,7 +19,7 @@
 package fake
 
 import (
-	apexv1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
+	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

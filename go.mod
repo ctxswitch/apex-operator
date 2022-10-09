@@ -1,4 +1,4 @@
-module ctx.sh/apex
+module ctx.sh/apex-operator
 
 go 1.18
 

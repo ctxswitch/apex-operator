@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	apexv1 "ctx.sh/apex/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
+	apexv1 "ctx.sh/apex-operator/pkg/client/clientset/versioned/typed/apex.ctx.sh/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

@@ -21,8 +21,8 @@ package v1
 import (
 	"net/http"
 
-	v1 "ctx.sh/apex/pkg/apis/apex.ctx.sh/v1"
-	"ctx.sh/apex/pkg/client/clientset/versioned/scheme"
+	v1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
+	"ctx.sh/apex-operator/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

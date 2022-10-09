@@ -21,7 +21,7 @@ package internalinterfaces
 import (
 	time "time"
 
-	versioned "ctx.sh/apex/pkg/client/clientset/versioned"
+	versioned "ctx.sh/apex-operator/pkg/client/clientset/versioned"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	cache "k8s.io/client-go/tools/cache"

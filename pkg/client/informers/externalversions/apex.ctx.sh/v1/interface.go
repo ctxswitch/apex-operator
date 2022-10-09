@@ -19,7 +19,7 @@
 package v1
 
 import (
-	internalinterfaces "ctx.sh/apex/pkg/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "ctx.sh/apex-operator/pkg/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.
