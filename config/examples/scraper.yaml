@@ -1,0 +1,15 @@
+apiVersion: apex.ctx.sh/v1
+kind: Scraper
+metadata:
+  name: scraper
+  labels:
+    app: scraper
+    service: apex
+spec:
+  selector:
+    matchLabels:
+      group: examples
+  scrapeIntervalSeconds: 10
+  annotationPrefix: apex.ctx.sh
+  # input
+  # output

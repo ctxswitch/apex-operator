@@ -18,8 +18,8 @@ var (
 )
 
 func init() {
-	apexv1.AddToScheme(scheme)
-	corev1.AddToScheme(scheme)
+	_ = apexv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
 
 }
 

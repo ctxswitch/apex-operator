@@ -17,12 +17,6 @@ func (s *Scraper) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-/*
-Kubebuilder markers to generate webhook manifests.
-This marker is responsible for generating a mutating webhook manifest.
-The meaning of each marker can be found [here](/reference/markers/webhook.md).
-*/
-
 // +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/mutate-apex-ctx-sh-v1-scraper,mutating=true,failurePolicy=fail,groups=apex.ctx.sh,resources=scrapers,verbs=create;update,versions=v1,name=scraper.apex.ctx.sh
 
 var _ webhook.Defaulter = &Scraper{}
