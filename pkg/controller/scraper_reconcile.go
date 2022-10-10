@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/tools/record"
@@ -10,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var requeueResult = ctrl.Result{RequeueAfter: 10 * time.Second, Requeue: true}
+// var requeueResult = ctrl.Result{RequeueAfter: 10 * time.Second, Requeue: true}
 
 type ScraperReconciler struct {
 	client  client.Client

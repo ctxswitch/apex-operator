@@ -1,7 +1,6 @@
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,20 +32,17 @@ type TLS struct {
 }
 
 type ScraperSpec struct {
-	// +required
-	Name string `json:"name"`
 	// +optional
-	Env []corev1.EnvVar `json:"env,omitempty"`
-	// +optional
-	ScrapeInterval *int32 `json:"scrapeInterval,omitempty"`
+	ScrapeIntervalSeconds *int32 `json:"scrapeIntervalSeconds,omitempty"`
 	// +optional
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
-
+	// +optional
+	AnnotationPrefix *string `json:"annotationPrefix,omitempty"`
 	// ------------------------------------------------------------------------
 	// These won't be implemented for the MVP, but as a follow on
 	// ------------------------------------------------------------------------
 	// +optional
-	Authentication Authentication `json:"authentication,omitempty"`
+	Authentication *Authentication `json:"authentication,omitempty"`
 	// +optional
 	TLS *TLS `json:"tls,omitempty"`
 }
