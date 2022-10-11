@@ -17,14 +17,13 @@ const (
 	Untyped
 	Summary
 	Histogram
+	Unknown
 )
 
 // Metric is the interface that all metrics must be adhear to
 // in order to be processed through and output.  This is a bit
 // overkill for now, but I may add in additional inputs later.
 type Metric interface {
-	// Name is the identifier for the metric.
-	New(time.Time, string, map[string]string) Metric
 	// WithClock sets the clock interface for the metric
 	WithClock(clock.Clock) Metric
 	// WithPrefix adds a prefix to the metric.  The prefix will be
@@ -33,8 +32,8 @@ type Metric interface {
 	// Name returns the name of the metric.  If there is a prefix,
 	// the prefix is prepended to it.
 	Name() string
-	// Value returns the value of the metric
-	Labels() map[string]string
+	// Tags returns the value of the metric
+	Tags() map[string]string
 	// AddLabel adds a label to the map
 	Time() time.Time
 	// Since returns the delta between the time the metric was
@@ -42,11 +41,13 @@ type Metric interface {
 	Since() time.Duration
 	// Type returns a general type for the metric.
 	Type() ValueType
-	// Measurements returns all of the available measurements for
+	// SetType sets the type of the metric values
+	SetType(ValueType)
+	// Values returns all of the available measurements for
 	// the metric.
-	Measurements() map[string]interface{}
+	Values() map[string]interface{}
 	// Add measurement adds a new measurement to the metric.
-	AddMeasurement(string, interface{})
+	AddValue(string, interface{})
 	// Ack marks the metric processing as succeeded
 	Ack()
 	// Nack marks the metric processing as failed.
