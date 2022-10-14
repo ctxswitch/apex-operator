@@ -6,6 +6,7 @@ import (
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/controller"
+	"ctx.sh/apex-operator/pkg/scraper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -38,12 +39,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	apexReconciler := &controller.ApexReconciler{
-		Client: mgr.GetClient(),
-		Log:    mgr.GetLogger().WithValues("controller", "apex"),
+	reconciler := &controller.Reconciler{
+		Client:   mgr.GetClient(),
+		Log:      mgr.GetLogger().WithValues("controller", "apex"),
+		Scrapers: scraper.NewManager(),
 	}
 
-	err = apexReconciler.SetupWithManager(mgr)
+	err = reconciler.SetupWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to create controller")
 		os.Exit(1)

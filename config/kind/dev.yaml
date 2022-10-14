@@ -48,7 +48,7 @@ spec:
         workingDir: /usr/src/app
         command:
           - sleep
-          - 3600
+          - "3600"
         ports:
         - containerPort: 9090
         volumeMounts:

@@ -8,7 +8,7 @@ rules:
 - apiGroups:
   - apex.ctx.sh
   resources:
-  - opensearches
+  - scrapers
   verbs:
   - create
   - delete
@@ -20,7 +20,7 @@ rules:
 - apiGroups:
   - apex.ctx.sh
   resources:
-  - opensearches/status
+  - scrapers/status
   verbs:
   - get
   - patch
