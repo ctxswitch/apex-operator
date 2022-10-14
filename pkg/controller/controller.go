@@ -4,8 +4,8 @@ import (
 	"context"
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
+	"ctx.sh/apex-operator/pkg/scraper"
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -13,86 +13,91 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-type ApexReconciler struct {
-	Client client.Client
-	Log    logr.Logger
-	Mgr    ctrl.Manager
-	// Scrapers
+func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.Mgr = mgr
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&apexv1.Scraper{}).
+		WithEventFilter(r.predicates()).
+		Complete(r)
 }
 
-func (r *ApexReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
-	handler := ApexHandler{
+type Reconciler struct {
+	Client   client.Client
+	Log      logr.Logger
+	Mgr      ctrl.Manager
+	Scrapers *scraper.Manager
+}
+
+func (r *Reconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
+	handler := Handler{
 		client:   r.Mgr.GetClient(),
 		request:  request,
 		ctx:      ctx,
 		log:      r.Log.WithValues("name", request.Name, "namespace", request.Namespace),
-		recorder: r.Mgr.GetEventRecorderFor("ApexClusterOperator"),
-		// observed: NewObservedApexState(),
+		recorder: r.Mgr.GetEventRecorderFor("ApexOperator"),
+		observed: NewObservedState(),
+		scrapers: r.Scrapers,
 	}
 	return handler.reconcile(request)
 }
 
-func (r *ApexReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	predicates := predicate.Funcs{
+func (r *Reconciler) predicates() predicate.Funcs {
+	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			if e.ObjectOld == nil {
-				r.Log.Error(nil, "Update event has no old object to update", "event", e)
 				return false
 			}
 			if e.ObjectNew == nil {
-				r.Log.Error(nil, "Update event has no new object for update", "event", e)
 				return false
 			}
 
 			// Ignore metadata and status updates
 			if e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration() {
-				r.Log.Info("update", "old", e.ObjectOld, "new", e.ObjectNew)
 				return true
 			}
 			return false
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
-			r.Log.Info("create")
 			return true
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
-			r.Log.Info("delete")
 			return true
 		},
 	}
-
-	r.Mgr = mgr
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&apexv1.Scraper{}).
-		Owns(&corev1.Pod{}).
-		Owns(&corev1.Service{}).
-		WithEventFilter(predicates).
-		Complete(r)
 }
 
-type ApexHandler struct {
+type Handler struct {
 	client   client.Client
 	request  ctrl.Request
 	ctx      context.Context
 	log      logr.Logger
 	recorder record.EventRecorder
-	// observed ObservedApexState
-	// desired  DesiredApexState
+	observed ObservedState
+	scrapers *scraper.Manager
 }
 
-func (h *ApexHandler) reconcile(request ctrl.Request) (ctrl.Result, error) {
+func (h *Handler) reconcile(request ctrl.Request) (ctrl.Result, error) {
 	h.log.Info("request received", "request", request)
 
-	// Set up observer
-	// Get desired state
+	observer := &StateObserver{
+		Client:  h.client,
+		Request: request,
+		Context: h.ctx,
+		Log:     h.log,
+	}
+
+	err := observer.observe(&h.observed)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	scraperReconciler := &ScraperReconciler{
 		client:   h.client,
 		context:  h.ctx,
 		log:      h.log,
 		recorder: h.recorder,
-		// observed: h.observed,
-		// desired:  h.desired,
+		observed: h.observed,
+		scrapers: h.scrapers,
 	}
 
 	return scraperReconciler.reconcile(h.ctx, request)

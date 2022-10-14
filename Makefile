@@ -60,19 +60,19 @@ manifests: controller-gen
 build: verify
 	@CGO_ENABLED=0 GOOS=linux go build -trimpath --ldflags $(LDFLAGS) -o apex
 
-# Run inside the localdev kind cluster
-run:
-	$(eval POD := $(shell kubectl get pods -n apex -l app=dev -o=custom-columns=:metadata.name --no-headers))
-	kubectl exec -n apex -it pod/$(POD) -- go run main.go
-
 localdev: localdev-deploy install
 
 localdev-deploy:
 	@./config/kind/deploy.sh
 
-install: generate regen-crd
+install: generate manifests
 	@cat config/crds/*.yaml | kubectl apply -n apex -f -
 	@cat config/rbac/*.yaml | kubectl apply -n apex -f -
+
+# Run inside the localdev kind cluster
+run:
+	$(eval POD := $(shell kubectl get pods -n apex -l app=dev -o=custom-columns=:metadata.name --no-headers))
+	kubectl exec -n apex -it pod/$(POD) -- bash -c "APEX_ENABLE_WEBHOOKS=false go run main.go"
 
 exec:
 	$(eval POD := $(shell kubectl get pods -n apex -l app=dev -o=custom-columns=:metadata.name --no-headers))

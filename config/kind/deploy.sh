@@ -42,6 +42,7 @@ fi
 docker pull golang
 kind load docker-image golang --name apex
 
-kubectl apply -f ./config/rbac/role.yaml
-kubectl apply -f ./config/kind/dev.yaml
+cat config/crds/*.yaml | kubectl apply -n apex -f -
+cat config/rbac/*.yaml | kubectl apply -n apex -f -
 
+cat config/kind/dev.yaml | kubectl apply -n apex -f -
