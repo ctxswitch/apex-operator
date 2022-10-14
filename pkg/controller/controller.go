@@ -93,7 +93,6 @@ func (h *Handler) reconcile(request ctrl.Request) (ctrl.Result, error) {
 
 	scraperReconciler := &ScraperReconciler{
 		client:   h.client,
-		context:  h.ctx,
 		log:      h.log,
 		recorder: h.recorder,
 		observed: h.observed,

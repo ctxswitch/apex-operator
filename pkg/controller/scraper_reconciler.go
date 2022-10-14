@@ -12,7 +12,6 @@ import (
 
 type ScraperReconciler struct {
 	client   client.Client
-	context  context.Context
 	log      logr.Logger
 	observed ObservedState
 	recorder record.EventRecorder
@@ -31,7 +30,7 @@ func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request)
 		Key:     request.NamespacedName,
 		Config:  r.observed.scraper.Spec,
 		Client:  r.client,
-		Context: r.context,
+		Context: ctx,
 		Log:     r.log.WithValues("scraper", request.NamespacedName),
 	})
 
