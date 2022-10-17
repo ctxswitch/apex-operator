@@ -8,7 +8,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      group: examples
+      # k8s-app: kube-proxy
   scrapeIntervalSeconds: 10
   annotationPrefix: apex.ctx.sh
   # input

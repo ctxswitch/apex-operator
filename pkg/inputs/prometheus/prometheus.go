@@ -17,7 +17,7 @@ import (
 
 type Prometheus struct {
 	Url    string
-	Client *http.Client
+	Client http.Client
 }
 
 func (p *Prometheus) Get() ([]metric.Metric, error) {
@@ -97,7 +97,11 @@ func (p *Prometheus) parse(now time.Time, buf []byte) ([]metric.Metric, error) {
 					p.SetType(metric.Untyped)
 					p.AddValue("value", v)
 				}
+			default:
+				continue
 			}
+
+			metrics = append(metrics, p)
 		}
 	}
 

@@ -19,3 +19,5 @@
 - [ ] Wire up webhook defaults
 - [ ] Handle webhook validations
 - [ ] Support protobuf prometheus scraping
+- [ ] Limit discovery to specific namespaces (all by default)
+- [ ] Add concurrency to scraper workers
