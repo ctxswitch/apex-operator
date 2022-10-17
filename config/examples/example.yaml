@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: example
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example
+  namespace: example
+  labels:
+    app: example
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+      annotations:
+        apex.ctx.sh/scrape: "true"
+    spec:
+      containers:
+      - name: app
+        image: golang:latest
+        imagePullPolicy: Never
+        workingDir: /usr/src/app
+        command:
+          - go
+          - run
+          - ./config/examples/main.go
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - name: app
+          mountPath: /usr/src/app
+      volumes:
+      - name: app
+        hostPath:
+          path: /app
