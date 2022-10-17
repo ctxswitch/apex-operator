@@ -33,11 +33,12 @@ type Metric struct {
 
 func New(t time.Time, name string, tags map[string]string) metric.Metric {
 	metric := &Metric{
-		name:  name,
-		tags:  tags,
-		time:  t,
-		vtype: metric.Unknown,
-		clock: clock.RealClock{},
+		name:   name,
+		tags:   tags,
+		time:   t,
+		vtype:  metric.Unknown,
+		clock:  clock.RealClock{},
+		values: make(map[string]interface{}),
 	}
 
 	return metric

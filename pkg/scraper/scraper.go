@@ -2,11 +2,18 @@ package scraper
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
+	"ctx.sh/apex-operator/pkg/inputs/prometheus"
+	"ctx.sh/apex-operator/pkg/outputs/logger"
+
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -27,7 +34,6 @@ type Scraper struct {
 	config   apexv1.ScraperSpec
 	stopChan chan struct{}
 	stopOnce sync.Once
-	sync.RWMutex
 }
 
 func NewScraper(opts ScraperOpts) *Scraper {
@@ -49,6 +55,7 @@ func (s *Scraper) intervalRun() {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
+	s.Scrape()
 	for {
 		select {
 		case <-ticker.C:
@@ -70,10 +77,77 @@ func (s *Scraper) Stop() {
 }
 
 func (s *Scraper) Scrape() {
-	s.RLock()
-	defer s.RUnlock()
-
+	// Make a client pool to get through things more quickly
 	s.log.Info("scraping targets")
-	// input
-	// output
+
+	httpClient := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	pods, err := s.discoverPods()
+	if err != nil {
+		s.log.Error(err, "pod discovery failed")
+	}
+
+	for _, pod := range pods.Items {
+		annotations := pod.GetAnnotations()
+		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
+		if a, ok := annotations[scrape]; ok && a == "true" {
+			log := s.log.WithValues("pod", pod.GetName()+"/"+pod.GetNamespace())
+
+			// hardcode for testing
+			input := prometheus.Prometheus{
+				Url:    fmt.Sprintf("http://%s:%d/metrics", pod.Status.PodIP, 9000),
+				Client: httpClient,
+			}
+
+			// hardcode for testing
+			output := logger.Logger{
+				Log: log,
+			}
+
+			m, err := input.Get()
+			if err != nil {
+				log.Error(err, "unable to scrape metrics")
+				continue
+			}
+
+			output.Send(m)
+		}
+
+		// Input (maybe on to an output channel?)
+		// Output (maybe spin up dedicated output workers?)
+	}
+
+	services, err := s.discoverServices()
+	if err != nil {
+		s.log.Error(err, "pod discovery failed")
+	}
+
+	for _, svc := range services.Items {
+		annotations := svc.GetAnnotations()
+		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
+		if a, ok := annotations[scrape]; ok && a == "true" {
+			s.log.Info("found pod", "name", svc.GetName(), "namespace", svc.GetNamespace())
+		}
+
+		// Input (maybe on to an output channel?)
+		// Output (maybe spin up dedicated output workers?)
+	}
+}
+
+func (s *Scraper) discoverPods() (list corev1.PodList, err error) {
+	selector := labels.SelectorFromSet(s.config.Selector.MatchLabels)
+	err = s.client.List(s.context, &list, &client.ListOptions{
+		LabelSelector: selector,
+	})
+	return
+}
+
+func (s *Scraper) discoverServices() (list corev1.ServiceList, err error) {
+	selector := labels.SelectorFromSet(s.config.Selector.MatchLabels)
+	err = s.client.List(s.context, &list, &client.ListOptions{
+		LabelSelector: selector,
+	})
+	return
 }
