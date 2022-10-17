@@ -10,12 +10,14 @@
 - [x] Manage the scraping process and start/stop the process on create/delete
 - [x] Manage the scraping process on update
 - [x] Create logging output for testing
-- [ ] Default any scraper object that is found.
+- [ ] Default any scraper object that is found
+- [ ] Add input and output configuration to the manifest.
+- [ ] Get the other prometheus annotations for endpoint configuration and move that into the input.
 - [ ] Make simple pipeline for input/output communication
-- [ ] Set up limited use datadog account
-- [ ] Create datadog output
 - [ ] Allow common tags from k8s information (namespace, pod, node, etc..)
 - [ ] Allow annotations and labels for tags
+- [ ] Set up limited use datadog account
+- [ ] Create datadog output
 - [ ] Wire up webhook defaults
 - [ ] Handle webhook validations
 - [ ] Support protobuf prometheus scraping

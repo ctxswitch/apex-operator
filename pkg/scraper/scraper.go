@@ -9,6 +9,7 @@ import (
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/inputs/prometheus"
+	"ctx.sh/apex-operator/pkg/outputs/logger"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -93,24 +94,25 @@ func (s *Scraper) Scrape() {
 		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
 		if a, ok := annotations[scrape]; ok && a == "true" {
 			log := s.log.WithValues("pod", pod.GetName()+"/"+pod.GetNamespace())
-			log.Info("found pod")
 
-			endpoint := prometheus.Prometheus{
+			// hardcode for testing
+			input := prometheus.Prometheus{
 				Url:    fmt.Sprintf("http://%s:%d/metrics", pod.Status.PodIP, 9000),
 				Client: httpClient,
 			}
 
-			m, err := endpoint.Get()
+			// hardcode for testing
+			output := logger.Logger{
+				Log: log,
+			}
+
+			m, err := input.Get()
 			if err != nil {
 				log.Error(err, "unable to scrape metrics")
 				continue
 			}
 
-			// test
-			log.Info("got metric", "metric", m)
-			for _, x := range m {
-				log.Info("found values", "values", x.Values())
-			}
+			output.Send(m)
 		}
 
 		// Input (maybe on to an output channel?)
