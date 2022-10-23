@@ -15,17 +15,17 @@ func (d *Datadog) Send(m []metric.Metric) {
 		for _, v := range mm.Values() {
 			switch mm.Type() {
 			case metric.Counter:
-				d.Client.Count(mm.Name(), int64(v.(float64)), tags, 1)
+				_ = d.Client.Count(mm.Name(), int64(v.(float64)), tags, 1)
 			case metric.Gauge:
-				d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
+				_ = d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
 			case metric.Histogram:
-				d.Client.Histogram(mm.Name(), v.(float64), tags, 1)
+				_ = d.Client.Histogram(mm.Name(), v.(float64), tags, 1)
 			case metric.Summary:
-				d.Client.Distribution(mm.Name(), v.(float64), tags, 1)
+				_ = d.Client.Distribution(mm.Name(), v.(float64), tags, 1)
 			case metric.Unknown:
-				d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
+				_ = d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
 			case metric.Untyped:
-				d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
+				_ = d.Client.Gauge(mm.Name(), v.(float64), tags, 1)
 			}
 		}
 	}
