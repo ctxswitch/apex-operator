@@ -18,8 +18,8 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) Has(key types.NamespacedName) (*Scraper, bool) {
-	monitor, has := m.scrapers[key]
-	return monitor, has
+	sc, has := m.scrapers[key]
+	return sc, has
 }
 
 func (m *Manager) Update(opts ScraperOpts) {
@@ -35,12 +35,12 @@ func (m *Manager) Update(opts ScraperOpts) {
 }
 
 func (m *Manager) Remove(key types.NamespacedName) {
-	monitor, has := m.scrapers[key]
+	scraper, has := m.scrapers[key]
 	if !has {
 		return
 	}
 
-	monitor.Stop()
+	scraper.Stop()
 	delete(m.scrapers, key)
 }
 

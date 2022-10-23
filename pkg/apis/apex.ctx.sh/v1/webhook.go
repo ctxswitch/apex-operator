@@ -3,6 +3,8 @@
 package v1
 
 import (
+	"crypto/tls"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -11,13 +13,21 @@ import (
 // +kubebuilder:docs-gen:collapse=Go imports
 
 // SetupWebhookWithManager adds webhook for FlinkCluster.
-func (s *Scraper) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (s *Scraper) SetupWebhookWithManager(mgr ctrl.Manager, certDir string) error {
+	if certDir != "" {
+		whs := mgr.GetWebhookServer()
+		whs.CertDir = certDir
+		whs.TLSOpts = append(whs.TLSOpts, func(t *tls.Config) {
+			t.InsecureSkipVerify = true
+		})
+	}
+
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(s).
 		Complete()
 }
 
-// +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/mutate-apex-ctx-sh-v1-scraper,mutating=true,failurePolicy=fail,groups=apex.ctx.sh,resources=scrapers,verbs=create;update,versions=v1,name=scraper.apex.ctx.sh
+// +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/mutate-apex-ctx-sh-v1-scraper,mutating=true,failurePolicy=fail,groups=apex.ctx.sh,resources=scrapers,verbs=create;update,versions=v1,name=mscraper.apex.ctx.sh
 
 var _ webhook.Defaulter = &Scraper{}
 
@@ -27,7 +37,7 @@ func (s *Scraper) Default() {
 	defaulted(s)
 }
 
-// +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/validate-apex-ctx-sh-v1-scraper,mutating=false,failurePolicy=fail,groups=apex.ctx.sh,resources=scraper,verbs=create;update,versions=v1,name=scraper.apex.ctx.sh
+// +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/validate-apex-ctx-sh-v1-scraper,mutating=false,failurePolicy=fail,groups=apex.ctx.sh,resources=scraper,verbs=create;update,versions=v1,name=vscraper.apex.ctx.sh
 
 var _ webhook.Validator = &Scraper{}
 var validator = Validator{}

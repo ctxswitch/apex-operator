@@ -1,9 +1,5 @@
 package v1
 
-import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
 // defaulted sets the scraper resource defaults
 func defaulted(scraper *Scraper) {
 	defaultedSpec(&scraper.Spec)
@@ -20,10 +16,13 @@ func defaultedSpec(spec *ScraperSpec) {
 		*spec.ScrapeIntervalSeconds = 10
 	}
 
-	if spec.Selector == nil {
-		spec.Selector = &metav1.LabelSelector{
-			MatchLabels:      make(map[string]string),
-			MatchExpressions: make([]metav1.LabelSelectorRequirement, 0),
-		}
+	if spec.Resources == nil {
+		spec.Resources = []string{"pods", "services"}
 	}
+
+	defaultedSpecOutput(spec.Output)
+}
+
+func defaultedSpecOutput(outputs *Outputs) {
+
 }

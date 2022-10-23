@@ -13,15 +13,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
+const (
+	DefaultCertDir string = "/etc/admission-webhook/tls"
+)
+
 var (
 	setupLog = ctrl.Log.WithName("setup")
 	scheme   = runtime.NewScheme()
+	certDir  string
 )
 
 func init() {
 	_ = apexv1.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
 
+	flag.StringVar(&certDir, "certs", DefaultCertDir, "specify the cert directory")
 }
 
 func main() {
@@ -32,7 +38,10 @@ func main() {
 	ctrl.SetLogger(zap.New())
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme: scheme,
+		Scheme:             scheme,
+		Port:               9443,
+		MetricsBindAddress: ":9090",
+		LeaderElection:     false,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -51,12 +60,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if os.Getenv("APEX_ENABLE_WEBHOOKS") != "false" {
-		err = (&apexv1.Scraper{}).SetupWebhookWithManager(mgr)
-		if err != nil {
-			setupLog.Error(err, "Unable to setup webhooks", "webhook", "Scraper")
-			os.Exit(1)
-		}
+	err = (&apexv1.Scraper{}).SetupWebhookWithManager(mgr, certDir)
+	if err != nil {
+		setupLog.Error(err, "Unable to setup webhooks", "webhook", "Scraper")
+		os.Exit(1)
 	}
 
 	setupLog.Info("starting manager")

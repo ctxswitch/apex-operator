@@ -61,6 +61,29 @@ spec:
                   username:
                     type: string
                 type: object
+              output:
+                properties:
+                  datadog:
+                    properties:
+                      apiKey:
+                        type: string
+                      compression:
+                        type: string
+                      httpUrlProxy:
+                        type: string
+                      timeout:
+                        format: int64
+                        type: integer
+                      url:
+                        type: string
+                    type: object
+                  logger:
+                    type: object
+                type: object
+              resources:
+                items:
+                  type: string
+                type: array
               scrapeIntervalSeconds:
                 format: int32
                 type: integer

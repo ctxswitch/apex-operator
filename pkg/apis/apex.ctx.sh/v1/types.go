@@ -1,17 +1,10 @@
 package v1
 
 import (
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type Authentication struct {
-	// +optional
-	BearerToken *BearerToken `json:"bearerToken,omitempty"`
-	// +optional
-	Username *string `json:"username,omitempty"`
-	// +optional
-	Password *string `json:"password,omitempty"`
-}
 
 type BearerToken struct {
 	// +optional
@@ -22,13 +15,43 @@ type BearerToken struct {
 
 type TLS struct {
 	// +required
-	CA string `json:"ca,omitempty"`
+	CA *string `json:"ca,omitempty"`
 	// +required
-	Cert string `json:"cert,omitempty"`
+	Cert *string `json:"cert,omitempty"`
 	// +required
-	Key string `json:"key,omitempty"`
+	Key *string `json:"key,omitempty"`
 	// +optional
 	InsecureSkipVerify *bool `json:"insecureSkipVerify,omitempty"`
+}
+
+type LoggerOutput struct {
+}
+
+type DatadogOutput struct {
+	// +required
+	ApiKey *string `json:"apiKey,omitempty"`
+	// +optional
+	Timeout *time.Duration `json:"timeout,omitempty"`
+	// +optional
+	Url *string `json:"url,omitempty"`
+	// +optional
+	HttpUrlProxy *string `json:"httpUrlProxy,omitempty"`
+	// +optional
+	Compression *string `json:"compression,omitempty"`
+}
+
+type Authentication struct {
+	// +optional
+	BearerToken *BearerToken `json:"bearerToken,omitempty"`
+	// +optional
+	Username *string `json:"username,omitempty"`
+	// +optional
+	Password *string `json:"password,omitempty"`
+}
+
+type Outputs struct {
+	Logger  *LoggerOutput  `json:"logger,omitempty"`
+	Datadog *DatadogOutput `json:"datadog,omitempty"`
 }
 
 type ScraperSpec struct {
@@ -38,6 +61,10 @@ type ScraperSpec struct {
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 	// +optional
 	AnnotationPrefix *string `json:"annotationPrefix,omitempty"`
+	// +optional
+	Resources []string `json:"resources,omitempty"`
+	// +required
+	Output *Outputs `json:"output,omitempty"`
 	// ------------------------------------------------------------------------
 	// These won't be implemented for the MVP, but as a follow on
 	// ------------------------------------------------------------------------

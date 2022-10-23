@@ -13,7 +13,7 @@ webhooks:
       namespace: system
       path: /mutate-apex-ctx-sh-v1-scraper
   failurePolicy: Fail
-  name: scraper.apex.ctx.sh
+  name: mscraper.apex.ctx.sh
   rules:
   - apiGroups:
     - apex.ctx.sh
@@ -40,7 +40,7 @@ webhooks:
       namespace: system
       path: /validate-apex-ctx-sh-v1-scraper
   failurePolicy: Fail
-  name: scraper.apex.ctx.sh
+  name: vscraper.apex.ctx.sh
   rules:
   - apiGroups:
     - apex.ctx.sh
