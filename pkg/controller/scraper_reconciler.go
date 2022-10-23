@@ -20,7 +20,7 @@ type ScraperReconciler struct {
 
 func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	if r.observed.scraper == nil {
-		r.log.Info("the cluster has been deleted, ensuring cleanup")
+		r.log.Info("the scraper has been deleted, ensuring cleanup")
 		r.scrapers.Remove(request.NamespacedName)
 		return ctrl.Result{}, nil
 	}

@@ -3,14 +3,15 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
-	"ctx.sh/apex-operator/pkg/inputs/prometheus"
-	"ctx.sh/apex-operator/pkg/outputs/logger"
+	"ctx.sh/apex-operator/pkg/outputs/datadog"
 
+	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -24,6 +25,8 @@ type ScraperOpts struct {
 	Client  client.Client
 	Context context.Context
 	Log     logr.Logger
+	Input   any
+	Output  any
 }
 
 type Scraper struct {
@@ -32,6 +35,8 @@ type Scraper struct {
 	client   client.Client
 	log      logr.Logger
 	config   apexv1.ScraperSpec
+	input    any
+	output   any
 	stopChan chan struct{}
 	stopOnce sync.Once
 }
@@ -42,6 +47,8 @@ func NewScraper(opts ScraperOpts) *Scraper {
 		config:   opts.Config,
 		context:  opts.Context,
 		client:   opts.Client,
+		input:    opts.Input,
+		output:   opts.Output,
 		log:      opts.Log,
 		stopChan: make(chan struct{}),
 	}
@@ -61,10 +68,10 @@ func (s *Scraper) intervalRun() {
 		case <-ticker.C:
 			s.Scrape()
 		case <-s.stopChan:
-			s.log.Info("shutting down monitor")
+			s.log.Info("shutting down scraper")
 			return
 		case <-s.context.Done():
-			s.log.Info("shutting down monitor")
+			s.log.Info("shutting down scraper")
 			return
 		}
 	}
@@ -84,26 +91,39 @@ func (s *Scraper) Scrape() {
 		Timeout: 5 * time.Second,
 	}
 
+	statsdClient, err := statsd.New("ddagent.example.svc:8125")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer statsdClient.Close()
+
 	pods, err := s.discoverPods()
 	if err != nil {
 		s.log.Error(err, "pod discovery failed")
 	}
 
 	for _, pod := range pods.Items {
+		log := s.log.WithValues("pod", pod.GetName()+"/"+pod.GetNamespace())
+
+		if pod.Status.Phase != corev1.PodRunning {
+			continue
+		}
+
 		annotations := pod.GetAnnotations()
 		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
 		if a, ok := annotations[scrape]; ok && a == "true" {
-			log := s.log.WithValues("pod", pod.GetName()+"/"+pod.GetNamespace())
-
 			// hardcode for testing
-			input := prometheus.Prometheus{
+			input := Prometheus{
 				Url:    fmt.Sprintf("http://%s:%d/metrics", pod.Status.PodIP, 9000),
 				Client: httpClient,
 			}
 
 			// hardcode for testing
-			output := logger.Logger{
-				Log: log,
+			// output := logger.Logger{
+			// 	Log: log,
+			// }
+			output := datadog.Datadog{
+				Client: statsdClient,
 			}
 
 			m, err := input.Get()
@@ -114,9 +134,6 @@ func (s *Scraper) Scrape() {
 
 			output.Send(m)
 		}
-
-		// Input (maybe on to an output channel?)
-		// Output (maybe spin up dedicated output workers?)
 	}
 
 	services, err := s.discoverServices()
@@ -130,9 +147,6 @@ func (s *Scraper) Scrape() {
 		if a, ok := annotations[scrape]; ok && a == "true" {
 			s.log.Info("found pod", "name", svc.GetName(), "namespace", svc.GetNamespace())
 		}
-
-		// Input (maybe on to an output channel?)
-		// Output (maybe spin up dedicated output workers?)
 	}
 }
 

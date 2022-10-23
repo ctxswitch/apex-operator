@@ -16,10 +16,7 @@ func TestDefaulted(t *testing.T) {
 		Spec: ScraperSpec{
 			AnnotationPrefix:      &[]string{"prometheus.io"}[0],
 			ScrapeIntervalSeconds: &[]int32{10}[0],
-			Selector: &metav1.LabelSelector{
-				MatchLabels:      make(map[string]string),
-				MatchExpressions: make([]metav1.LabelSelectorRequirement, 0),
-			},
+			Resources:             []string{"pods", "services"},
 		},
 	}
 

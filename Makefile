@@ -11,8 +11,8 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-KUSTOMIZE_HOME=config
-KUSTOMIZE_CRDS=$(KUSTOMIZE_HOME)/crds/
+CONFIG_HOME=config
+CONFIG_CRDS=$(CONFIG_HOME)/crds/
 
 CRD_OPTIONS ?= "crd:maxDescLen=0,generateEmbeddedObjectMeta=true"
 
@@ -54,28 +54,33 @@ generate: controller-gen
 	@./k8s/update-codegen.sh
 
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=apex-role webhook paths="./pkg/apis/..." output:crd:artifacts:config=$(KUSTOMIZE_CRDS)
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=apex-role webhook paths="./pkg/apis/..." output:crd:artifacts:config=$(CONFIG_CRDS)
 	go mod tidy
 
 build: verify
 	@CGO_ENABLED=0 GOOS=linux go build -trimpath --ldflags $(LDFLAGS) -o apex
 
-localdev: localdev-deploy install
+localdev: localdev-kind install
 
-localdev-deploy:
-	@./config/kind/deploy.sh
+localdev-kind:
+	@./dev/kind/deploy.sh
 
-install: generate manifests
+install: # generate manifests
+	@cat dev/manifests/ns.yaml | kubectl apply -f -
+	@cat dev/manifests/secret.yaml | kubectl apply -n apex -f -
+	@cat dev/manifests/dev.yaml | kubectl apply -n apex -f -
+	@cat dev/manifests/webhook.yaml | kubectl apply -n apex -f -
+	@cat dev/manifests/svc.yaml | kubectl apply -n apex -f -
+	@cat dev/examples/app.yaml | kubectl apply -n example -f -
 	@cat config/crds/*.yaml | kubectl apply -n apex -f -
 	@cat config/rbac/*.yaml | kubectl apply -n apex -f -
 
-# Run inside the localdev kind cluster
 run:
-	$(eval POD := $(shell kubectl get pods -n apex -l app=dev -o=custom-columns=:metadata.name --no-headers))
-	kubectl exec -n apex -it pod/$(POD) -- bash -c "APEX_ENABLE_WEBHOOKS=false go run main.go"
+	$(eval POD := $(shell kubectl get pods -n apex -l app=apex-ctx-sh-operator -o=custom-columns=:metadata.name --no-headers))
+	kubectl exec -n apex -it pod/$(POD) -- bash -c "go run main.go"
 
 exec:
-	$(eval POD := $(shell kubectl get pods -n apex -l app=dev -o=custom-columns=:metadata.name --no-headers))
+	$(eval POD := $(shell kubectl get pods -n apex -l app=apex-ctx-sh-operator -o=custom-columns=:metadata.name --no-headers))
 	kubectl exec -n apex -it pod/$(POD) -- bash
 
 clean:

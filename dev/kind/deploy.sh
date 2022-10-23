@@ -42,7 +42,5 @@ fi
 docker pull golang
 kind load docker-image golang --name apex
 
-cat config/crds/*.yaml | kubectl apply -n apex -f -
-cat config/rbac/*.yaml | kubectl apply -n apex -f -
-
-cat config/kind/dev.yaml | kubectl apply -n apex -f -
+docker pull datadog/agent:7
+kind load docker-image datadog/agent:7 --name apex

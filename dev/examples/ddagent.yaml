@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ddagent
+  name: ddagent
+  namespace: example
+spec:
+  ports:
+    - port: 8125
+      protocol: TCP
+      targetPort: 8125
+  selector:
+    app: ddagent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddagent
+  namespace: example
+  labels:
+    app: ddagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ddagent
+  template:
+    metadata:
+      labels:
+        app: ddagent
+    spec:
+      containers:
+      - name: app
+        image: datadog/agent:7
+        imagePullPolicy: Never
+        command:
+          - /bin/entrypoint.sh
+        ports:
+          - containerPort: 8125
+        env:
+          - name: DD_API_KEY
+            value: "notakey"
+          - name: DD_DD_URL
+            value: http://app.example.svc:8080
+          - name: DD_APM_ENABLED
+            value: "false"
+          - name: DD_LOGS_ENABLED
+            value: "false"
+          - name: DD_PROCESS_AGENT_ENABLED
+            value: "false"
+          - name: DD_USE_DOGSTATSD
+            value: "true"
