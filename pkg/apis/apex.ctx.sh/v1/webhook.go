@@ -4,6 +4,8 @@ package v1
 
 import (
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -34,7 +36,9 @@ var _ webhook.Defaulter = &Scraper{}
 // Default implements webhook. Defaulter so a webhook will be registered for the
 // type.
 func (s *Scraper) Default() {
-	defaulted(s)
+	Defaulted(s)
+	data, _ := json.Marshal(s)
+	fmt.Printf("%s", string(data))
 }
 
 // +kubebuilder:webhook:admissionReviewVersions=v1,sideEffects=none,path=/validate-apex-ctx-sh-v1-scraper,mutating=false,failurePolicy=fail,groups=apex.ctx.sh,resources=scraper,verbs=create;update,versions=v1,name=vscraper.apex.ctx.sh

@@ -2,19 +2,16 @@ package scraper
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"net/http"
+	"reflect"
 	"sync"
-	"time"
 
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
-	"ctx.sh/apex-operator/pkg/outputs/datadog"
+	"ctx.sh/apex-operator/pkg/output"
+	"ctx.sh/apex-operator/pkg/output/datadog"
+	"ctx.sh/apex-operator/pkg/output/logger"
+	"ctx.sh/apex-operator/pkg/output/statsd"
 
-	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -25,143 +22,151 @@ type ScraperOpts struct {
 	Client  client.Client
 	Context context.Context
 	Log     logr.Logger
-	Input   any
-	Output  any
 }
 
 type Scraper struct {
-	key      types.NamespacedName
-	context  context.Context
-	client   client.Client
-	log      logr.Logger
-	config   apexv1.ScraperSpec
-	input    any
-	output   any
-	stopChan chan struct{}
-	stopOnce sync.Once
+	key       types.NamespacedName
+	client    client.Client
+	cancel    context.CancelFunc
+	log       logr.Logger
+	config    apexv1.ScraperSpec
+	startChan chan error
+	stopChan  chan struct{}
+	stopOnce  sync.Once
 }
 
 func NewScraper(opts ScraperOpts) *Scraper {
 	return &Scraper{
-		key:      opts.Key,
-		config:   opts.Config,
-		context:  opts.Context,
-		client:   opts.Client,
-		input:    opts.Input,
-		output:   opts.Output,
-		log:      opts.Log,
-		stopChan: make(chan struct{}),
+		key:       opts.Key,
+		config:    opts.Config,
+		client:    opts.Client,
+		log:       opts.Log,
+		startChan: make(chan error),
+		stopChan:  make(chan struct{}),
 	}
 }
 
-func (s *Scraper) Start() {
-	go s.intervalRun()
-}
+func (s *Scraper) Start(ctx context.Context) <-chan error {
+	ctx, cancel := context.WithCancel(ctx)
+	s.cancel = cancel
 
-func (s *Scraper) intervalRun() {
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
+	go func() {
+		s.up(ctx)
+	}()
 
-	s.Scrape()
-	for {
-		select {
-		case <-ticker.C:
-			s.Scrape()
-		case <-s.stopChan:
-			s.log.Info("shutting down scraper")
-			return
-		case <-s.context.Done():
-			s.log.Info("shutting down scraper")
-			return
-		}
-	}
+	return s.startChan
 }
 
 func (s *Scraper) Stop() {
 	s.stopOnce.Do(func() {
-		close(s.stopChan)
+		s.cancel()
 	})
 }
 
-func (s *Scraper) Scrape() {
-	// Make a client pool to get through things more quickly
-	s.log.Info("scraping targets")
+func (s *Scraper) up(ctx context.Context) {
+	workers := *s.config.Workers
 
-	httpClient := http.Client{
-		Timeout: 5 * time.Second,
+	workChan := make(chan Resource, workers*10)
+	defer close(workChan)
+
+	d := NewDiscovery(DiscoveryOpts{
+		Client:   s.client,
+		Config:   s.config,
+		Log:      s.log.WithValues("name", "discovery"),
+		WorkChan: workChan,
+	})
+	if err := <-d.Start(ctx); err != nil {
+		s.startChan <- err
+		return
 	}
+	defer d.Stop()
 
-	statsdClient, err := statsd.New("ddagent.example.svc:8125")
+	outputs, err := s.initOutputs()
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer statsdClient.Close()
-
-	pods, err := s.discoverPods()
-	if err != nil {
-		s.log.Error(err, "pod discovery failed")
+		s.startChan <- err
+		return
 	}
 
-	for _, pod := range pods.Items {
-		log := s.log.WithValues("pod", pod.GetName()+"/"+pod.GetNamespace())
+	var wg sync.WaitGroup
+	for i := 0; i < int(workers); i++ {
+		s.log.Info("starting up worker", "id", i)
+		worker := NewWorker(
+			workChan,
+			s.config,
+			s.log.WithValues("worker", i),
+			outputs,
+		)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			worker.Start(ctx)
+		}()
+	}
 
-		if pod.Status.Phase != corev1.PodRunning {
-			continue
-		}
+	s.startChan <- nil
 
-		annotations := pod.GetAnnotations()
-		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
-		if a, ok := annotations[scrape]; ok && a == "true" {
-			// hardcode for testing
-			input := Prometheus{
-				Url:    fmt.Sprintf("http://%s:%d/metrics", pod.Status.PodIP, 9000),
-				Client: httpClient,
-			}
+	<-ctx.Done()
+	wg.Wait()
+}
 
-			// hardcode for testing
-			// output := logger.Logger{
-			// 	Log: log,
-			// }
-			output := datadog.Datadog{
-				Client: statsdClient,
-			}
+func (s *Scraper) initOutputs() ([]output.Output, error) {
+	v := reflect.ValueOf(*s.config.Outputs)
 
-			m, err := input.Get()
-			if err != nil {
-				log.Error(err, "unable to scrape metrics")
+	outputs := make([]output.Output, 0)
+
+	for i := 0; i < v.NumField(); i++ {
+		switch oo := v.Field(i).Interface().(type) {
+		case *apexv1.StatsdOutput:
+			if oo == nil {
 				continue
 			}
-
-			output.Send(m)
+			out, err := statsd.New(*oo.DeepCopy())
+			if err == nil {
+				if *oo.Enabled {
+					outputs = append(outputs, out)
+				} else {
+					s.log.Info("statsd output is disabled")
+				}
+			} else {
+				s.log.Error(err, "unable to initialize statsd output")
+				return nil, err
+			}
+		case *apexv1.LoggerOutput:
+			if oo == nil {
+				continue
+			}
+			out, err := logger.New(s.log)
+			if err == nil {
+				if *oo.Enabled {
+					outputs = append(outputs, out)
+				} else {
+					s.log.Info("logger output is disabled")
+				}
+			} else {
+				s.log.Error(err, "unable to initialize logging output")
+				return nil, err
+			}
+		case *apexv1.DatadogOutput:
+			if oo == nil {
+				continue
+			}
+			out, err := datadog.New(*oo.DeepCopy())
+			if err == nil {
+				if *oo.Enabled {
+					outputs = append(outputs, out)
+				} else {
+					s.log.Info("datadog output is disabled")
+				}
+			} else {
+				s.log.Error(err, "unable to initialize logging output")
+				return nil, err
+			}
+		default:
+			s.log.Info("FOOOOOOOOOOOOOOOOOOOOO", "oo", oo)
 		}
 	}
 
-	services, err := s.discoverServices()
-	if err != nil {
-		s.log.Error(err, "pod discovery failed")
-	}
+	s.log.Info("SSSSSSSSSSSSSSSSSSSSSS", "outputs", outputs)
 
-	for _, svc := range services.Items {
-		annotations := svc.GetAnnotations()
-		scrape := *s.config.AnnotationPrefix + "/" + "scrape"
-		if a, ok := annotations[scrape]; ok && a == "true" {
-			s.log.Info("found pod", "name", svc.GetName(), "namespace", svc.GetNamespace())
-		}
-	}
-}
-
-func (s *Scraper) discoverPods() (list corev1.PodList, err error) {
-	selector := labels.SelectorFromSet(s.config.Selector.MatchLabels)
-	err = s.client.List(s.context, &list, &client.ListOptions{
-		LabelSelector: selector,
-	})
-	return
-}
-
-func (s *Scraper) discoverServices() (list corev1.ServiceList, err error) {
-	selector := labels.SelectorFromSet(s.config.Selector.MatchLabels)
-	err = s.client.List(s.context, &list, &client.ListOptions{
-		LabelSelector: selector,
-	})
-	return
+	return outputs, nil
 }

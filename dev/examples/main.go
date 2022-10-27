@@ -107,6 +107,7 @@ func main() {
 		Subsystem:    "example",
 		Separator:    ':',
 		PanicOnError: true,
+		Port:         9090,
 	})
 	wg.Add(1)
 	go func() {

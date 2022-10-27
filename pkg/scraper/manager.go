@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"context"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -22,7 +23,7 @@ func (m *Manager) Has(key types.NamespacedName) (*Scraper, bool) {
 	return sc, has
 }
 
-func (m *Manager) Update(opts ScraperOpts) {
+func (m *Manager) Add(ctx context.Context, opts ScraperOpts) error {
 	key := opts.Key
 	// If it exists, it's most likely been changed, so replace.
 	if _, has := m.Has(key); has {
@@ -30,8 +31,12 @@ func (m *Manager) Update(opts ScraperOpts) {
 	}
 
 	var scraper = NewScraper(opts)
+	if err := <-scraper.Start(ctx); err != nil {
+		return err
+	}
+
 	m.scrapers[key] = scraper
-	scraper.Start()
+	return nil
 }
 
 func (m *Manager) Remove(key types.NamespacedName) {
