@@ -11,14 +11,11 @@
 - [x] Manage the scraping process on update
 - [x] Create logging output for testing
 - [x] Add output configuration to the manifest.
-- [ ] Get the other prometheus annotations for endpoint configuration and move that into the input.
-- [ ] Make simple pipeline for input/output communication
-- [ ] Allow common tags from k8s information (namespace, pod, node, etc..)
-- [ ] Allow annotations and labels for tags
-- [ ] Set up limited use datadog account
-- [ ] Create datadog output
 - [x] Wire up webhook defaults
+- [x] Create dogstatsd output
+- [ ] Get the other prometheus annotations for endpoint configuration and move that into the input.
+- [ ] Allow common tags from k8s information (namespace, pod, node, etc..).
+- [ ] Support field selectors for custom tags
+- [ ] Allow labels for tags
 - [ ] Handle webhook validations
 - [ ] Support protobuf prometheus scraping
-- [ ] Limit discovery to specific namespaces (all by default)
-- [ ] Add concurrency to scraper workers

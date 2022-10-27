@@ -17,6 +17,7 @@ func TestDefaulted(t *testing.T) {
 			AnnotationPrefix:      &[]string{"prometheus.io"}[0],
 			ScrapeIntervalSeconds: &[]int32{10}[0],
 			Resources:             []string{"pods", "services"},
+			Workers:               &[]int32{10}[0],
 		},
 	}
 
@@ -26,7 +27,7 @@ func TestDefaulted(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	defaulted(scraper)
+	Defaulted(scraper)
 
 	assert.Equal(t, expected, scraper)
 }

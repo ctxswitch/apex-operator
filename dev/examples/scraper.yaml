@@ -10,5 +10,10 @@ spec:
     matchLabels:
       # k8s-app: kube-proxy
   annotationPrefix: apex.ctx.sh
-  output:
+  outputs:
     logger:
+      enabled: true
+    statsd:
+      enabled: true
+      host: ddagent.example.svc
+      port: 8125

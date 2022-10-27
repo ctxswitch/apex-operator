@@ -44,6 +44,8 @@ func (o *StateObserver) observe(observed *ObservedState) error {
 		log.V(6).Info("scraper", "state", "nil")
 		return nil
 	}
+
+	apexv1.Defaulted(observedScraper)
 	observed.scraper = observedScraper
 
 	return nil

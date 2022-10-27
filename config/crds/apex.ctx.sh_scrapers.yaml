@@ -61,7 +61,7 @@ spec:
                   username:
                     type: string
                 type: object
-              output:
+              outputs:
                 properties:
                   datadog:
                     properties:
@@ -69,6 +69,8 @@ spec:
                         type: string
                       compression:
                         type: string
+                      enabled:
+                        type: boolean
                       httpUrlProxy:
                         type: string
                       timeout:
@@ -78,6 +80,19 @@ spec:
                         type: string
                     type: object
                   logger:
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
+                  statsd:
+                    properties:
+                      enabled:
+                        type: boolean
+                      host:
+                        type: string
+                      port:
+                        format: int32
+                        type: integer
                     type: object
                 type: object
               resources:
@@ -122,6 +137,9 @@ spec:
                   key:
                     type: string
                 type: object
+              workers:
+                format: int32
+                type: integer
             type: object
           status:
             properties:

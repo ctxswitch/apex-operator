@@ -25,9 +25,13 @@ type TLS struct {
 }
 
 type LoggerOutput struct {
+	// +required
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 type DatadogOutput struct {
+	// +required
+	Enabled *bool `json:"enabled,omitempty"`
 	// +required
 	ApiKey *string `json:"apiKey,omitempty"`
 	// +optional
@@ -38,6 +42,15 @@ type DatadogOutput struct {
 	HttpUrlProxy *string `json:"httpUrlProxy,omitempty"`
 	// +optional
 	Compression *string `json:"compression,omitempty"`
+}
+
+type StatsdOutput struct {
+	// +required
+	Enabled *bool `json:"enabled,omitempty"`
+	// +required
+	Host *string `json:"host,omitempty"`
+	// +optional
+	Port *int32 `json:"port,omitempty"`
 }
 
 type Authentication struct {
@@ -51,10 +64,13 @@ type Authentication struct {
 
 type Outputs struct {
 	Logger  *LoggerOutput  `json:"logger,omitempty"`
+	Statsd  *StatsdOutput  `json:"statsd,omitempty"`
 	Datadog *DatadogOutput `json:"datadog,omitempty"`
 }
 
 type ScraperSpec struct {
+	// +optional
+	Workers *int32 `json:"workers,omitempty"`
 	// +optional
 	ScrapeIntervalSeconds *int32 `json:"scrapeIntervalSeconds,omitempty"`
 	// +optional
@@ -63,8 +79,8 @@ type ScraperSpec struct {
 	AnnotationPrefix *string `json:"annotationPrefix,omitempty"`
 	// +optional
 	Resources []string `json:"resources,omitempty"`
-	// +required
-	Output *Outputs `json:"output,omitempty"`
+	// +optional
+	Outputs *Outputs `json:"outputs,omitempty"`
 	// ------------------------------------------------------------------------
 	// These won't be implemented for the MVP, but as a follow on
 	// ------------------------------------------------------------------------

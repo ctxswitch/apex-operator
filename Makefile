@@ -71,6 +71,8 @@ install: # generate manifests
 	@cat dev/manifests/dev.yaml | kubectl apply -n apex -f -
 	@cat dev/manifests/webhook.yaml | kubectl apply -n apex -f -
 	@cat dev/manifests/svc.yaml | kubectl apply -n apex -f -
+	@cat dev/examples/ns.yaml | kubectl apply -n example -f -
+	@cat dev/examples/ddagent.yaml | kubectl apply -n example -f -
 	@cat dev/examples/app.yaml | kubectl apply -n example -f -
 	@cat config/crds/*.yaml | kubectl apply -n apex -f -
 	@cat config/rbac/*.yaml | kubectl apply -n apex -f -
