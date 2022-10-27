@@ -5,7 +5,7 @@ go 1.18
 require (
 	ctx.sh/apex v0.1.0
 	github.com/DataDog/datadog-go/v5 v5.1.1
-	github.com/felixge/httpsnoop v1.0.1
+	github.com/felixge/httpsnoop v1.0.3
 	github.com/go-logr/logr v1.2.3
 	github.com/gorilla/mux v1.8.0
 	github.com/prometheus/client_model v0.3.0
