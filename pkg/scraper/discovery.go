@@ -71,7 +71,7 @@ func (d *Discovery) poll(ctx context.Context) {
 		case <-d.stopChan:
 			return
 		case <-ctx.Done():
-			// If we get an interupt/kill, block until stop is called.
+			// If we get an interrupt/kill, block until stop is called.
 			<-d.stopChan
 		case <-ticker.C:
 			_ = d.intervalRun(ctx)
