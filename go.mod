@@ -8,14 +8,14 @@ require (
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/go-logr/logr v1.2.3
 	github.com/gorilla/mux v1.8.0
-	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/client_model v0.3.0
 	github.com/prometheus/common v0.37.0
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.21.0
-	k8s.io/api v0.25.2
-	k8s.io/apimachinery v0.25.2
-	k8s.io/client-go v0.25.2
-	k8s.io/code-generator v0.25.2
+	k8s.io/api v0.25.3
+	k8s.io/apimachinery v0.25.3
+	k8s.io/client-go v0.25.3
+	k8s.io/code-generator v0.25.3
 	sigs.k8s.io/controller-runtime v0.13.0
 	sigs.k8s.io/controller-tools v0.10.0
 )
