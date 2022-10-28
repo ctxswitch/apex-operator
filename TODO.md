@@ -20,7 +20,7 @@
 - [x] (prometheus) Allow labels for tags
 - [ ] Add metrics
 - [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values
+- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (discover) Namespace restrictions for discovery
 - [ ] (v1) Handle webhook validations
 - [ ] Leader election
