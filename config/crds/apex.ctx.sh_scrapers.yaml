@@ -63,6 +63,17 @@ spec:
                   username:
                     type: string
                 type: object
+              metaTags:
+                properties:
+                  name:
+                    type: boolean
+                  namespace:
+                    type: boolean
+                  node:
+                    type: boolean
+                  resourceVersion:
+                    type: boolean
+                type: object
               outputs:
                 properties:
                   datadog:

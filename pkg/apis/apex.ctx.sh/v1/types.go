@@ -68,11 +68,20 @@ type Outputs struct {
 	Datadog *DatadogOutput `json:"datadog,omitempty"`
 }
 
+type MetaTags struct {
+	Name            *bool `json:"name,omitempty"`
+	Namespace       *bool `json:"namespace,omitempty"`
+	ResourceVersion *bool `json:"resourceVersion,omitempty"`
+	Node            *bool `json:"node,omitempty"`
+}
+
 type ScraperSpec struct {
 	// +optional
 	Workers *int32 `json:"workers,omitempty"`
 	// +optional
 	AllowLabels *bool `json:"allowLabels,omitempty"`
+	// +optional
+	MetaTags *MetaTags `json:"metaTags,omitempty"`
 	// +optional
 	ScrapeIntervalSeconds *int32 `json:"scrapeIntervalSeconds,omitempty"`
 	// +optional

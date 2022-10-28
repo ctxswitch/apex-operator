@@ -11,6 +11,11 @@ spec:
       # k8s-app: kube-proxy
   allowLabels: true
   annotationPrefix: apex.ctx.sh
+  metaTags:
+    name: true
+    namespace: true
+    resourceVersion: true
+    node: true
   outputs:
     logger:
       enabled: true
