@@ -161,12 +161,8 @@ func (s *Scraper) initOutputs() ([]output.Output, error) {
 				s.log.Error(err, "unable to initialize logging output")
 				return nil, err
 			}
-		default:
-			s.log.Info("FOOOOOOOOOOOOOOOOOOOOO", "oo", oo)
 		}
 	}
-
-	s.log.Info("SSSSSSSSSSSSSSSSSSSSSS", "outputs", outputs)
 
 	return outputs, nil
 }
