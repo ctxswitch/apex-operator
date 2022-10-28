@@ -14,6 +14,7 @@ func TestDefaulted(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: ScraperSpec{
+			AllowLabels:           &[]bool{false}[0],
 			AnnotationPrefix:      &[]string{"prometheus.io"}[0],
 			ScrapeIntervalSeconds: &[]int32{10}[0],
 			Resources:             []string{"pods", "services"},
