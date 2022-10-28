@@ -90,7 +90,7 @@ func (w *Worker) scrape(r Resource) ([]metric.Metric, error) {
 		Client: w.httpClient,
 	}
 
-	m, err := input.Get()
+	m, err := input.Get(r.tags)
 	if err != nil {
 		return nil, err
 	}

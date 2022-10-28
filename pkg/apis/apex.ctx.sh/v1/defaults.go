@@ -25,6 +25,11 @@ func defaultedSpec(spec *ScraperSpec) {
 		spec.Resources = []string{"pods", "services"}
 	}
 
+	if spec.AllowLabels == nil {
+		spec.AllowLabels = new(bool)
+		*spec.AllowLabels = false
+	}
+
 	defaultedSpecOutput(spec.Outputs)
 }
 

@@ -8,6 +8,7 @@ import (
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	typesv1 "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -134,7 +135,7 @@ func (d *Discovery) discoverServices(ctx context.Context) error {
 				return d.discoverEndpoints(ctx, typesv1.NamespacedName{
 					Namespace: svc.GetNamespace(),
 					Name:      svc.GetName(),
-				}, svc.GetAnnotations())
+				}, svc.ObjectMeta, svc.GetAnnotations())
 			} else {
 				d.workChan <- r
 			}
@@ -146,6 +147,7 @@ func (d *Discovery) discoverServices(ctx context.Context) error {
 func (d *Discovery) discoverEndpoints(
 	ctx context.Context,
 	nn typesv1.NamespacedName,
+	obj metav1.ObjectMeta,
 	annotations map[string]string,
 ) error {
 	var endpoints corev1.Endpoints
@@ -156,7 +158,7 @@ func (d *Discovery) discoverEndpoints(
 
 	for _, sset := range endpoints.Subsets {
 		for _, addr := range sset.Addresses {
-			r := FromEndpointAddress(addr, annotations, d.config)
+			r := FromEndpointAddress(addr, obj, annotations, d.config)
 			// Redundant check since we only call this from the service
 			// right now.
 			if r.enabled {

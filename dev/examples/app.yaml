@@ -20,6 +20,7 @@ metadata:
   namespace: example
   labels:
     app: app
+    group: example
 spec:
   replicas: 3
   selector:
@@ -29,8 +30,10 @@ spec:
     metadata:
       labels:
         app: app
+        group: example
       annotations:
         apex.ctx.sh/scrape: "true"
+        apex.ctx.sh/labels: group
     spec:
       containers:
       - name: app

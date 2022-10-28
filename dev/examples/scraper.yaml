@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       # k8s-app: kube-proxy
+  allowLabels: true
   annotationPrefix: apex.ctx.sh
   outputs:
     logger:

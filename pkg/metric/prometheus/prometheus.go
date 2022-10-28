@@ -62,6 +62,10 @@ func (m *Metric) Tags() map[string]string {
 	return m.tags
 }
 
+func (m *Metric) AddTag(k, v string) {
+	m.tags[k] = v
+}
+
 func (m *Metric) Time() time.Time {
 	return m.time
 }
