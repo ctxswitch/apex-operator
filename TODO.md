@@ -12,10 +12,18 @@
 - [x] Create logging output for testing
 - [x] Add output configuration to the manifest.
 - [x] Wire up webhook defaults
-- [x] Create dogstatsd output
-- [ ] Get the other prometheus annotations for endpoint configuration and move that into the input.
-- [ ] Allow common tags from k8s information (namespace, pod, node, etc..).
-- [ ] Support field selectors for custom tags
-- [ ] Allow labels for tags
-- [ ] Handle webhook validations
+- [x] Create statsd output
+- [x] Get the other prometheus annotations for endpoint configuration and move that into the input.
+- [x] (statsd) convert seperator to '.'
+- [ ] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
+- [ ] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
+- [ ] (resource) Support field selectors for custom tags
+- [ ] (prometheus) Allow labels for tags
+- [ ] (discover) Namespace restrictions for discovery
+- [ ] (v1) Handle webhook validations
+- [ ] Leader election
+- [ ] Support TLS for scraping
+- [ ] Support authentication for scraping
 - [ ] Support protobuf prometheus scraping
+- [ ] Include/exclude metrics via matching
+- [ ] Clipping and clamping metric values
