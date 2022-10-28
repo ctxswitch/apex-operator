@@ -30,7 +30,34 @@ func defaultedSpec(spec *ScraperSpec) {
 		*spec.AllowLabels = false
 	}
 
+	defaultedSpecMetaTags(spec.MetaTags)
 	defaultedSpecOutput(spec.Outputs)
+}
+
+func defaultedSpecMetaTags(m *MetaTags) {
+	if m == nil {
+		m = &MetaTags{}
+	}
+
+	if m.Name == nil {
+		m.Name = new(bool)
+		*m.Name = false
+	}
+
+	if m.Namespace == nil {
+		m.Namespace = new(bool)
+		*m.Namespace = false
+	}
+
+	if m.ResourceVersion == nil {
+		m.ResourceVersion = new(bool)
+		*m.ResourceVersion = false
+	}
+
+	if m.Node == nil {
+		m.Node = new(bool)
+		*m.Node = false
+	}
 }
 
 func defaultedSpecOutput(outputs *Outputs) {

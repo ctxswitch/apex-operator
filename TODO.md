@@ -16,14 +16,15 @@
 - [x] Get the other prometheus annotations for endpoint configuration and move that into the input.
 - [x] (statsd) convert seperator to '.'
 - [x] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
-- [ ] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
-- [ ] (resource) Support field selectors for custom tags
-- [ ] (prometheus) Allow labels for tags
+- [x] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
+- [x] (prometheus) Allow labels for tags
+- [ ] Add metrics
+- [ ] Include/exclude metrics via matching
+- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (discover) Namespace restrictions for discovery
 - [ ] (v1) Handle webhook validations
 - [ ] Leader election
 - [ ] Support TLS for scraping
 - [ ] Support authentication for scraping
+- [ ] (resource) Support field selectors for custom tags
 - [ ] Support protobuf prometheus scraping
-- [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values
