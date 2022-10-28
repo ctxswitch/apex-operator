@@ -8,11 +8,12 @@ import (
 )
 
 type Resource struct {
-	enabled bool
-	ip      string
-	port    string
-	path    string
-	scheme  string
+	enabled   bool
+	ip        string
+	port      string
+	path      string
+	scheme    string
+	discovery string
 }
 
 func (r *Resource) Enabled() bool {
@@ -36,6 +37,16 @@ func FromPod(pod corev1.Pod, config apexv1.ScraperSpec) Resource {
 	return resource
 }
 
+func FromEndpointAddress(
+	address corev1.EndpointAddress,
+	annotations map[string]string,
+	config apexv1.ScraperSpec,
+) Resource {
+	resource := parseAnnotations(annotations, config)
+	resource.ip = address.IP
+	return resource
+}
+
 func parseAnnotations(annotations map[string]string, config apexv1.ScraperSpec) Resource {
 	prefix := *config.AnnotationPrefix
 
@@ -43,11 +54,13 @@ func parseAnnotations(annotations map[string]string, config apexv1.ScraperSpec) 
 	var scheme string = "http"
 	var port string = "9090"
 	var path string = "/metrics"
+	var discovery string = "self"
 
 	scrapeAnnotation := fmt.Sprintf("%s/scrape", prefix)
 	schemeAnnotation := fmt.Sprintf("%s/scheme", prefix)
 	portAnnotation := fmt.Sprintf("%s/port", prefix)
 	pathAnnotation := fmt.Sprintf("%s/path", prefix)
+	discoveryAnnotation := fmt.Sprintf("%s/discovery", prefix)
 
 	if a, ok := annotations[scrapeAnnotation]; ok {
 		enabled = a == "true"
@@ -65,10 +78,15 @@ func parseAnnotations(annotations map[string]string, config apexv1.ScraperSpec) 
 		path = a
 	}
 
+	if a, ok := annotations[discoveryAnnotation]; ok {
+		discovery = a
+	}
+
 	return Resource{
-		enabled: enabled,
-		scheme:  scheme,
-		port:    port,
-		path:    path,
+		enabled:   enabled,
+		scheme:    scheme,
+		port:      port,
+		path:      path,
+		discovery: discovery,
 	}
 }

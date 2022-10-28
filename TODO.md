@@ -15,7 +15,7 @@
 - [x] Create statsd output
 - [x] Get the other prometheus annotations for endpoint configuration and move that into the input.
 - [x] (statsd) convert seperator to '.'
-- [ ] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
+- [x] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
 - [ ] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
 - [ ] (resource) Support field selectors for custom tags
 - [ ] (prometheus) Allow labels for tags

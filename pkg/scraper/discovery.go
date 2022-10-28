@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	typesv1 "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -127,7 +128,40 @@ func (d *Discovery) discoverServices(ctx context.Context) error {
 	for _, svc := range list.Items {
 		r := FromService(svc, d.config)
 		if r.enabled {
-			d.workChan <- r
+			// If we are a headless service or the discovery annotation
+			// is set, use the endpoints.
+			if r.ip == "None" || r.discovery == "endpoints" {
+				return d.discoverEndpoints(ctx, typesv1.NamespacedName{
+					Namespace: svc.GetNamespace(),
+					Name:      svc.GetName(),
+				}, svc.GetAnnotations())
+			} else {
+				d.workChan <- r
+			}
+		}
+	}
+	return nil
+}
+
+func (d *Discovery) discoverEndpoints(
+	ctx context.Context,
+	nn typesv1.NamespacedName,
+	annotations map[string]string,
+) error {
+	var endpoints corev1.Endpoints
+	err := d.client.Get(ctx, nn, &endpoints, &client.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, sset := range endpoints.Subsets {
+		for _, addr := range sset.Addresses {
+			r := FromEndpointAddress(addr, annotations, d.config)
+			// Redundant check since we only call this from the service
+			// right now.
+			if r.enabled {
+				d.workChan <- r
+			}
 		}
 	}
 	return nil
