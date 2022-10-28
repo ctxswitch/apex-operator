@@ -18,12 +18,13 @@
 - [x] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
 - [x] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
 - [x] (prometheus) Allow labels for tags
+- [ ] Add metrics
+- [ ] Include/exclude metrics via matching
+- [ ] Clipping and clamping metric values
 - [ ] (discover) Namespace restrictions for discovery
 - [ ] (v1) Handle webhook validations
 - [ ] Leader election
 - [ ] Support TLS for scraping
 - [ ] Support authentication for scraping
-- [ ] Support protobuf prometheus scraping
-- [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values
 - [ ] (resource) Support field selectors for custom tags
+- [ ] Support protobuf prometheus scraping
