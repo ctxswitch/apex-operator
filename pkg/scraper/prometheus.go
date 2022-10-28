@@ -20,7 +20,7 @@ type Prometheus struct {
 	Client http.Client
 }
 
-func (p *Prometheus) Get() ([]metric.Metric, error) {
+func (p *Prometheus) Get(tags map[string]string) ([]metric.Metric, error) {
 	req, _ := http.NewRequest("GET", p.Url, nil)
 	resp, err := p.Client.Do(req)
 	if err != nil {
@@ -35,7 +35,7 @@ func (p *Prometheus) Get() ([]metric.Metric, error) {
 
 	// use clock interface later.  just not sure what the interface for inputs
 	// is going to fully look like yet.
-	m, err := p.parse(time.Now(), buf)
+	m, err := p.parse(time.Now(), buf, tags)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (p *Prometheus) Get() ([]metric.Metric, error) {
 	return m, nil
 }
 
-func (p *Prometheus) parse(now time.Time, buf []byte) ([]metric.Metric, error) {
+func (p *Prometheus) parse(now time.Time, buf []byte, tags map[string]string) ([]metric.Metric, error) {
 	var parser expfmt.TextParser
 	var err error
 
@@ -61,8 +61,8 @@ func (p *Prometheus) parse(now time.Time, buf []byte) ([]metric.Metric, error) {
 
 	for name, mf := range metricFamilies {
 		for _, m := range mf.Metric {
-			// Add k8s labels and default tags if needed
-			tags := parseLabels(m, nil)
+			tags := parseLabels(m, tags)
+			tags = parseLabelPairs(tags, m.GetLabel())
 			p := pmx.New(now, name, tags)
 
 			switch mf.GetType() {
@@ -108,10 +108,10 @@ func (p *Prometheus) parse(now time.Time, buf []byte) ([]metric.Metric, error) {
 	return metrics, nil
 }
 
-func parseLabels(m *dto.Metric, other map[string]string) map[string]string {
+func parseLabels(m *dto.Metric, tags map[string]string) map[string]string {
 	result := map[string]string{}
 
-	for key, value := range other {
+	for key, value := range tags {
 		result[key] = value
 	}
 
@@ -120,4 +120,13 @@ func parseLabels(m *dto.Metric, other map[string]string) map[string]string {
 	}
 
 	return result
+}
+
+func parseLabelPairs(tags map[string]string, pairs []*dto.LabelPair) map[string]string {
+	for _, pair := range pairs {
+		name := pair.GetName()
+		value := pair.GetValue()
+		tags[name] = value
+	}
+	return tags
 }

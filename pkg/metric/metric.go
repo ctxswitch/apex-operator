@@ -34,7 +34,9 @@ type Metric interface {
 	Name() string
 	// Tags returns the value of the metric
 	Tags() map[string]string
-	// AddLabel adds a label to the map
+	// AddTag adds a tag to the map
+	AddTag(string, string)
+	// Time returns the time the metric was collected
 	Time() time.Time
 	// Since returns the delta between the time the metric was
 	// collected and now.

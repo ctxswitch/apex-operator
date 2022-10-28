@@ -18,7 +18,7 @@ func New(logger logr.Logger) (output.Output, error) {
 
 func (l *Logger) Send(m []metric.Metric) {
 	for _, x := range m {
-		l.log.Info("metric", "values", x.Values())
+		l.log.Info("metric", "metric_name", x.Name(), "metric_values", x.Values(), "metric_tags", x.Tags())
 	}
 }
 

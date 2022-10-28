@@ -252,6 +252,11 @@ func (in *ScraperSpec) DeepCopyInto(out *ScraperSpec) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.AllowLabels != nil {
+		in, out := &in.AllowLabels, &out.AllowLabels
+		*out = new(bool)
+		**out = **in
+	}
 	if in.ScrapeIntervalSeconds != nil {
 		in, out := &in.ScrapeIntervalSeconds, &out.ScrapeIntervalSeconds
 		*out = new(int32)

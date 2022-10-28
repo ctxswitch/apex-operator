@@ -45,6 +45,8 @@ spec:
             type: object
           spec:
             properties:
+              allowLabels:
+                type: boolean
               annotationPrefix:
                 type: string
               authentication:

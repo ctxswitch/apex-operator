@@ -72,6 +72,8 @@ type ScraperSpec struct {
 	// +optional
 	Workers *int32 `json:"workers,omitempty"`
 	// +optional
+	AllowLabels *bool `json:"allowLabels,omitempty"`
+	// +optional
 	ScrapeIntervalSeconds *int32 `json:"scrapeIntervalSeconds,omitempty"`
 	// +optional
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
@@ -104,6 +106,8 @@ type ScraperSpec struct {
 // +kubebuilder:rbac:groups=core,resources=pods/status,verbs=get
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
 // +kubebuilder:rbac:groups=core,resources=services/status,verbs=get
+// +kubebuilder:rbac:groups=core,resources=endpoints,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=endpoints/status,verbs=get
 // +kubebuilder:rbac:groups=apex.ctx.sh,resources=scraper,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apex.ctx.sh,resources=scraper/status,verbs=get;update;patch
 type Scraper struct {
