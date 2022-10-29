@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apex-operator
+  namespace: apex-system
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: apex-operator
+          image: golang:latest
+          workingDir: /usr/src/app
+          command:
+            - sleep
+            - infinity
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+          volumeMounts:
+            - name: app
+              mountPath: /usr/src/app
+            - name: tls
+              mountPath: "/etc/admission-webhook/tls"
+              readOnly: true
+      volumes:
+        - name: app
+          hostPath:
+            path: /app
+        - name: tls
+          secret:
+            secretName: apex-ctx-sh-webhook-tls

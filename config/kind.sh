@@ -44,3 +44,6 @@ kind load docker-image golang --name apex
 
 docker pull datadog/agent:7
 kind load docker-image datadog/agent:7 --name apex
+
+docker pull registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.6.0
+kind load docker-image registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.6.0 --name apex

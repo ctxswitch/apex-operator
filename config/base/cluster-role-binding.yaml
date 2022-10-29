@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: apex-manager
+  namespace: apex-system
+subjects:
+- kind: ServiceAccount
+  name: apex-manager
+  namespace: apex-system
+roleRef:
+  kind: ClusterRole
+  name: apex-manager-role
+  apiGroup: rbac.authorization.k8s.io

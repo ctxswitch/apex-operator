@@ -18,13 +18,16 @@
 - [x] (discover,resource) Get service endpoints instead of service when clusterip is none or `/discover` is set to `endpoints`.
 - [x] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
 - [x] (prometheus) Allow labels for tags
-- [ ] Add metrics
-- [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (discover) Namespace restrictions for discovery
-- [ ] (v1) Handle webhook validations
+- [ ] Add metrics
 - [ ] Leader election
+--- MVP (complete)
+- [ ] Node scraping
+- [ ] Custom endpointslice scraping
 - [ ] Support TLS for scraping
 - [ ] Support authentication for scraping
+- [ ] (v1) Handle webhook validations
+- [ ] Include/exclude metrics via matching
+- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (resource) Support field selectors for custom tags
 - [ ] Support protobuf prometheus scraping

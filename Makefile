@@ -11,10 +11,13 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-CONFIG_HOME=config
-CONFIG_CRDS=$(CONFIG_HOME)/crds/
-
 CRD_OPTIONS ?= "crd:maxDescLen=0,generateEmbeddedObjectMeta=true"
+RBAC_OPTIONS ?= "rbac:roleName=apex-role"
+WEBHOOK_OPTIONS ?= "webhook"
+OUTPUT_OPTIONS ?= "output:crd:artifacts:config=config/base/crd"
+
+certs:
+	@./config/gen-certs.sh
 
 controller-gen:
 ifeq (, $(shell which controller-gen))
@@ -54,36 +57,36 @@ generate: controller-gen
 	@./k8s/update-codegen.sh
 
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=apex-role webhook paths="./pkg/apis/..." output:crd:artifacts:config=$(CONFIG_CRDS)
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) $(RBAC_OPTIONS) $(WEBHOOK_OPTIONS) paths="./pkg/apis/..." $(OUTPUT_OPTIONS)
 	go mod tidy
 
 build: verify
 	@CGO_ENABLED=0 GOOS=linux go build -trimpath --ldflags $(LDFLAGS) -o apex
 
-localdev: localdev-kind install
+local: kind install example
 
-localdev-kind:
-	@./dev/kind/deploy.sh
+kind:
+	@./config/kind.sh
 
-install: # generate manifests
-	@cat dev/manifests/ns.yaml | kubectl apply -f -
-	@cat dev/manifests/secret.yaml | kubectl apply -n apex -f -
-	@cat dev/manifests/dev.yaml | kubectl apply -n apex -f -
-	@cat dev/manifests/webhook.yaml | kubectl apply -n apex -f -
-	@cat dev/manifests/svc.yaml | kubectl apply -n apex -f -
-	@cat dev/examples/ns.yaml | kubectl apply -n example -f -
-	@cat dev/examples/ddagent.yaml | kubectl apply -n example -f -
-	@cat dev/examples/app.yaml | kubectl apply -n example -f -
-	@cat config/crds/*.yaml | kubectl apply -n apex -f -
-	@cat config/rbac/*.yaml | kubectl apply -n apex -f -
+install:
+	kubectl apply -k config/overlays/dev
+
+example:
+	@cat config/examples/ns.yaml | kubectl apply -n example -f -
+	@cat config/examples/app.yaml | kubectl apply -n example -f -
+	@cat config/examples/ddagent.yaml | kubectl apply -n example -f -
+	@cat config/examples/kube-state-metrics.yaml | kubectl apply -n example -f -
+
+example-scraper:
+	@cat config/examples/scraper.yaml | kubectl apply -n example -f -
 
 run:
-	$(eval POD := $(shell kubectl get pods -n apex -l app=apex-ctx-sh-operator -o=custom-columns=:metadata.name --no-headers))
-	kubectl exec -n apex -it pod/$(POD) -- bash -c "go run main.go"
+	$(eval POD := $(shell kubectl get pods -n apex-system -l name=apex-operator -o=custom-columns=:metadata.name --no-headers))
+	kubectl exec -n apex-system -it pod/$(POD) -- bash -c "go run main.go"
 
 exec:
-	$(eval POD := $(shell kubectl get pods -n apex -l app=apex-ctx-sh-operator -o=custom-columns=:metadata.name --no-headers))
-	kubectl exec -n apex -it pod/$(POD) -- bash
+	$(eval POD := $(shell kubectl get pods -n apex-system -l name=apex-operator -o=custom-columns=:metadata.name --no-headers))
+	kubectl exec -n apex-system -it pod/$(POD) -- bash
 
 clean:
 	@echo "Cleaning up all the generated files"

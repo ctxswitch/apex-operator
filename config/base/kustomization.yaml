@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: apex-system
+commonAnnotations:
+  apex.ctx.sh/authors: "Rob Lyon"
+  apex.ctx.sh/license: "Apache"
+  apex.ctx.sh/support: "https://github.com/ctxswitch/apex-operator/issues"
+
+resources:
+  - crd/apex.ctx.sh_scrapers.yaml
+  - webhook/manifests.yaml
+  - namespace.yaml
+  - service-account.yaml
+  - cluster-role.yaml
+  - cluster-role-binding.yaml
+  - service.yaml
+  - deployment.yaml
