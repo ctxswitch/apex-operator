@@ -113,11 +113,14 @@ func (d *Discovery) intervalRun(ctx context.Context) error {
 		return err
 	}
 
-	d.update(ctx, apexv1.ScraperStatus{
+	err = d.update(ctx, apexv1.ScraperStatus{
 		Discovered:  int64(discovered),
 		Enabled:     int64(enabled),
 		LastScraped: metav1.Now(),
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
