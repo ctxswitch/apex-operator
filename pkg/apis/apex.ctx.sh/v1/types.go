@@ -111,14 +111,6 @@ type ScraperSpec struct {
 // +kubebuilder:printcolumn:name="Services",type="string",JSONPath=".status.totalServices"
 // +kubebuilder:printcolumn:name="Errors (pods)",type="string",JSONPath=".status.erroredPods"
 // +kubebuilder:printcolumn:name="Errors (services)",type="string",JSONPath=".status.erroredServices"
-// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups=core,resources=pods/status,verbs=get
-// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
-// +kubebuilder:rbac:groups=core,resources=services/status,verbs=get
-// +kubebuilder:rbac:groups=core,resources=endpoints,verbs=get;list;watch
-// +kubebuilder:rbac:groups=core,resources=endpoints/status,verbs=get
-// +kubebuilder:rbac:groups=apex.ctx.sh,resources=scraper,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=apex.ctx.sh,resources=scraper/status,verbs=get;update;patch
 type Scraper struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

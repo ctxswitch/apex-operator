@@ -28,6 +28,15 @@ type Reconciler struct {
 	Scrapers *scraper.Manager
 }
 
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=pods/status,verbs=get
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=services/status,verbs=get
+// +kubebuilder:rbac:groups=core,resources=endpoints,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=endpoints/status,verbs=get
+// +kubebuilder:rbac:groups=apex.ctx.sh,resources=scrapers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apex.ctx.sh,resources=scrapers/status,verbs=get;update;patch
+
 func (r *Reconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	handler := Handler{
 		client:   r.Mgr.GetClient(),

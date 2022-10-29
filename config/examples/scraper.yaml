@@ -23,3 +23,18 @@ spec:
       enabled: true
       host: ddagent.example.svc
       port: 8125
+---
+apiVersion: apex.ctx.sh/v1
+kind: Scraper
+metadata:
+  name: kube
+  labels:
+    app: kube
+    service: apex
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: exporter
+  outputs:
+    logger:
+      enabled: true

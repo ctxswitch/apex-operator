@@ -16,3 +16,7 @@ vendor/
 bin/
 
 .vscode
+
+config/overlays/*/*.crt
+config/overlays/*/*.key
+config/overlays/*/webhook.yaml

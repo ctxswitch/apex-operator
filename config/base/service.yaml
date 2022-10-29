@@ -1,11 +1,10 @@
----
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: apex-ctx-sh-operator
+    app: apex-operator
   name: apex-ctx-sh-webhook
-  namespace: apex
+  namespace: apex-system
 spec:
   type: NodePort
   ports:
@@ -14,4 +13,5 @@ spec:
       targetPort: 9443
       nodePort: 30100
   selector:
-    app: apex-ctx-sh-operator
+    name: apex-operator
+    operator: leader

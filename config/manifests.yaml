@@ -1,0 +1,414 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  name: apex-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
+  name: scrapers.apex.ctx.sh
+spec:
+  group: apex.ctx.sh
+  names:
+    kind: Scraper
+    listKind: ScraperList
+    plural: scrapers
+    shortNames:
+    - sx
+    singular: scraper
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    - jsonPath: .status.totalPods
+      name: Pods
+      type: string
+    - jsonPath: .status.totalServices
+      name: Services
+      type: string
+    - jsonPath: .status.erroredPods
+      name: Errors (pods)
+      type: string
+    - jsonPath: .status.erroredServices
+      name: Errors (services)
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              allowLabels:
+                type: boolean
+              annotationPrefix:
+                type: string
+              authentication:
+                properties:
+                  bearerToken:
+                    properties:
+                      path:
+                        type: string
+                      string:
+                        type: string
+                    type: object
+                  password:
+                    type: string
+                  username:
+                    type: string
+                type: object
+              metaTags:
+                properties:
+                  name:
+                    type: boolean
+                  namespace:
+                    type: boolean
+                  node:
+                    type: boolean
+                  resourceVersion:
+                    type: boolean
+                type: object
+              outputs:
+                properties:
+                  datadog:
+                    properties:
+                      apiKey:
+                        type: string
+                      compression:
+                        type: string
+                      enabled:
+                        type: boolean
+                      httpUrlProxy:
+                        type: string
+                      timeout:
+                        format: int64
+                        type: integer
+                      url:
+                        type: string
+                    type: object
+                  logger:
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
+                  statsd:
+                    properties:
+                      enabled:
+                        type: boolean
+                      host:
+                        type: string
+                      port:
+                        format: int32
+                        type: integer
+                    type: object
+                type: object
+              resources:
+                items:
+                  type: string
+                type: array
+              scrapeIntervalSeconds:
+                format: int32
+                type: integer
+              selector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              tls:
+                properties:
+                  ca:
+                    type: string
+                  cert:
+                    type: string
+                  insecureSkipVerify:
+                    type: boolean
+                  key:
+                    type: string
+                type: object
+              workers:
+                format: int32
+                type: integer
+            type: object
+          status:
+            properties:
+              errorPods:
+                format: int64
+                type: integer
+              errorServices:
+                format: int64
+                type: integer
+              okPods:
+                format: int64
+                type: integer
+              okServices:
+                format: int64
+                type: integer
+              totalPods:
+                format: int64
+                type: integer
+              totalServices:
+                format: int64
+                type: integer
+              version:
+                type: string
+            required:
+            - errorPods
+            - errorServices
+            - okPods
+            - okServices
+            - totalPods
+            - totalServices
+            - version
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  name: apex-operator
+  namespace: apex-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  creationTimestamp: null
+  name: apex-manager-role
+rules:
+- apiGroups:
+  - apex.ctx.sh
+  resources:
+  - scrapers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apex.ctx.sh
+  resources:
+  - scrapers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/status
+  - services/status
+  - endpoints/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  name: apex-manager
+  namespace: apex-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: apex-manager-role
+subjects:
+- kind: ServiceAccount
+  name: apex-manager
+  namespace: apex-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  labels:
+    app: apex-operator
+  name: apex-ctx-sh-webhook
+  namespace: apex-system
+spec:
+  ports:
+  - nodePort: 30100
+    port: 9443
+    protocol: TCP
+    targetPort: 9443
+  selector:
+    name: apex-operator
+    operator: leader
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  name: apex-operator
+  namespace: apex-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: apex-operator
+  template:
+    metadata:
+      annotations:
+        apex.ctx.sh/authors: Rob Lyon
+        apex.ctx.sh/license: Apache
+        apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+      labels:
+        name: apex-operator
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: name
+                operator: In
+                values:
+                - apex-operator
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - image: ctxsh/apex-operator:latest
+        imagePullPolicy: IfNotPresent
+        name: apex-operator
+        resources:
+          requests:
+            cpu: 200m
+            ephemeral-storage: 500Mi
+            memory: 256Mi
+        securityContext:
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+      serviceAccountName: apex-operator
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-apex-ctx-sh-v1-scraper
+  failurePolicy: Fail
+  name: mscraper.apex.ctx.sh
+  rules:
+  - apiGroups:
+    - apex.ctx.sh
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - scrapers
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    apex.ctx.sh/authors: Rob Lyon
+    apex.ctx.sh/license: Apache
+    apex.ctx.sh/support: https://github.com/ctxswitch/apex-operator/issues
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-apex-ctx-sh-v1-scraper
+  failurePolicy: Fail
+  name: vscraper.apex.ctx.sh
+  rules:
+  - apiGroups:
+    - apex.ctx.sh
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - scraper
+  sideEffects: None

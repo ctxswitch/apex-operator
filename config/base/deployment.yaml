@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apex-operator
+  namespace: apex-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: apex-operator
+  template:
+    metadata:
+      labels:
+        name: apex-operator
+    spec:
+      serviceAccountName: apex-manager
+      containers:
+        - name: apex-operator
+          image: ctxsh/apex-operator:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 500Mi
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: name
+                    operator: In
+                    values:
+                      - apex-operator
+              topologyKey: kubernetes.io/hostname
