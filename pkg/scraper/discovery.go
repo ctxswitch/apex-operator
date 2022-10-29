@@ -134,7 +134,6 @@ func (d *Discovery) discoverPods(ctx context.Context, discovered *int, enabled *
 	if err != nil {
 		return err
 	}
-	*discovered += len(list.Items)
 
 	for _, pod := range list.Items {
 		r := FromPod(pod, d.scraper.Spec)
@@ -144,6 +143,7 @@ func (d *Discovery) discoverPods(ctx context.Context, discovered *int, enabled *
 		}
 	}
 
+	*discovered += len(list.Items)
 	return nil
 }
 
@@ -156,7 +156,6 @@ func (d *Discovery) discoverServices(ctx context.Context, discovered *int, enabl
 	if err != nil {
 		return err
 	}
-	*discovered += len(list.Items)
 
 	for _, svc := range list.Items {
 		r := FromService(svc, d.scraper.Spec)
@@ -175,6 +174,7 @@ func (d *Discovery) discoverServices(ctx context.Context, discovered *int, enabl
 		}
 	}
 
+	*discovered += len(list.Items)
 	return nil
 }
 
@@ -191,7 +191,6 @@ func (d *Discovery) discoverEndpoints(
 	if err != nil {
 		return err
 	}
-	*discovered += len(endpoints.Subsets)
 
 	for _, sset := range endpoints.Subsets {
 		for _, addr := range sset.Addresses {
@@ -205,6 +204,7 @@ func (d *Discovery) discoverEndpoints(
 		}
 	}
 
+	*discovered += len(endpoints.Subsets)
 	return nil
 }
 
