@@ -16,8 +16,6 @@ import (
 const (
 	DefaultCertDir              string = "/etc/admission-webhook/tls"
 	DefaultEnableLeaderElection bool   = false
-	ClusterNamespacePath        string = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-	LeaderElectionResourceLock  string = "leases"
 )
 
 var (
