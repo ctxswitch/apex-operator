@@ -20,6 +20,9 @@
 - [x] (prometheus) Allow labels for tags
 - [x] Leader election
 - [x] Status updates
+- [ ] Tag and metrics denylist
+- [ ] Tag and metrics allowlist
+- [ ] Metric
 - [ ] Event recorder
 - [ ] Add metrics
 - [ ] Container builds
@@ -33,6 +36,6 @@
 - [ ] Support authentication for scraping
 - [ ] (v1) Handle webhook validations
 - [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
+- [ ] Cutoff and clamping of metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (resource) Support field selectors for custom tags
 - [ ] Support protobuf prometheus scraping
