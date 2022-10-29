@@ -51,10 +51,10 @@ func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request)
 	r.log.Info("reconciling scraper", "request", request)
 
 	err := r.scrapers.Add(ctx, scraper.ScraperOpts{
-		Key:    request.NamespacedName,
-		Config: *r.observed.scraper.Spec.DeepCopy(),
-		Client: r.client,
-		Log:    r.log.WithValues("scraper", request.NamespacedName),
+		Key:     request.NamespacedName,
+		Scraper: *r.observed.scraper.DeepCopy(),
+		Client:  r.client,
+		Log:     r.log.WithValues("scraper", request.NamespacedName),
 	})
 	if err != nil {
 		// Later we can get more explicit about what is a retryable
