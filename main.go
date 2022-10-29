@@ -14,13 +14,15 @@ import (
 )
 
 const (
-	DefaultCertDir string = "/etc/admission-webhook/tls"
+	DefaultCertDir              string = "/etc/admission-webhook/tls"
+	DefaultEnableLeaderElection bool   = false
 )
 
 var (
-	setupLog = ctrl.Log.WithName("setup")
-	scheme   = runtime.NewScheme()
-	certDir  string
+	setupLog       = ctrl.Log.WithName("setup")
+	scheme         = runtime.NewScheme()
+	certDir        string
+	leaderElection bool
 )
 
 func init() {
@@ -28,6 +30,7 @@ func init() {
 	_ = corev1.AddToScheme(scheme)
 
 	flag.StringVar(&certDir, "certs", DefaultCertDir, "specify the cert directory")
+	flag.BoolVar(&leaderElection, "enable-leader-election", DefaultEnableLeaderElection, "enable leader election")
 }
 
 func main() {
@@ -41,7 +44,8 @@ func main() {
 		Scheme:             scheme,
 		Port:               9443,
 		MetricsBindAddress: ":9090",
-		LeaderElection:     false,
+		LeaderElection:     leaderElection,
+		LeaderElectionID:   "apex-operator-lock",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
