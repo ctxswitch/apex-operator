@@ -43,7 +43,7 @@ spec:
         command:
           - go
           - run
-          - ./dev/examples/main.go
+          - ./config/examples/main.go
         ports:
         - containerPort: 9000
         volumeMounts:

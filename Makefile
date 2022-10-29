@@ -75,7 +75,7 @@ example:
 	@cat config/examples/ns.yaml | kubectl apply -n example -f -
 	@cat config/examples/app.yaml | kubectl apply -n example -f -
 	@cat config/examples/ddagent.yaml | kubectl apply -n example -f -
-	@cat config/examples/kube-state-metrics.yaml | kubectl apply -n example -f -
+	@cat config/examples/kube-state-metrics.yaml | kubectl apply -n kube-system -f -
 
 example-scraper:
 	@cat config/examples/scraper.yaml | kubectl apply -n example -f -
