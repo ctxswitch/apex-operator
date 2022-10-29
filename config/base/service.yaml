@@ -14,4 +14,3 @@ spec:
       nodePort: 30100
   selector:
     name: apex-operator
-    operator: leader

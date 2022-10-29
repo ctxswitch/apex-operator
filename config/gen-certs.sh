@@ -11,7 +11,7 @@ openssl req -newkey rsa:2048 -nodes -keyout server.key \
   -out server.csr
 
 openssl x509 -req \
-  -extfile <(printf "subjectAltName=DNS:apex-ctx-sh-webhook.apex.svc") \
+  -extfile <(printf "subjectAltName=DNS:apex-ctx-sh-webhook.apex-system.svc") \
   -days 365 \
   -in server.csr \
   -CA ca.crt -CAkey ca.key -CAcreateserial \
@@ -30,8 +30,9 @@ webhooks:
   clientConfig:
     caBundle: "$(awk '{printf "%s\\n", $0}' cabundle.crt)"
     service:
-      name: webhook-service
+      name: apex-ctx-sh-webhook
       namespace: apex-system
+      port: 9443
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -42,8 +43,9 @@ webhooks:
   clientConfig:
     caBundle: "$(awk '{printf "%s\\n", $0}' cabundle.crt)"
     service:
-      name: webhook-service
+      name: apex-ctx-sh-webhook
       namespace: apex-system
+      port: 9443
 EOF
 
 mv server.crt ./config/overlays/dev/tls.crt
