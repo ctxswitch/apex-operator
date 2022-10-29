@@ -82,7 +82,7 @@ example-scraper:
 
 run:
 	$(eval POD := $(shell kubectl get pods -n apex-system -l name=apex-operator -o=custom-columns=:metadata.name --no-headers))
-	kubectl exec -n apex-system -it pod/$(POD) -- bash -c "go run main.go"
+	kubectl exec -n apex-system -it pod/$(POD) -- bash -c "go run main.go -enable-leader-election"
 
 exec:
 	$(eval POD := $(shell kubectl get pods -n apex-system -l name=apex-operator -o=custom-columns=:metadata.name --no-headers))
