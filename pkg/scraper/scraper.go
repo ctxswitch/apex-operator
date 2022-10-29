@@ -34,7 +34,7 @@ import (
 
 type ScraperOpts struct {
 	Key     types.NamespacedName
-	Config  apexv1.ScraperSpec
+	Scraper apexv1.Scraper
 	Client  client.Client
 	Context context.Context
 	Log     logr.Logger
@@ -45,7 +45,7 @@ type Scraper struct {
 	client    client.Client
 	cancel    context.CancelFunc
 	log       logr.Logger
-	config    apexv1.ScraperSpec
+	scraper   apexv1.Scraper
 	startChan chan error
 	stopChan  chan struct{}
 	stopOnce  sync.Once
@@ -54,7 +54,7 @@ type Scraper struct {
 func NewScraper(opts ScraperOpts) *Scraper {
 	return &Scraper{
 		key:       opts.Key,
-		config:    opts.Config,
+		scraper:   opts.Scraper,
 		client:    opts.Client,
 		log:       opts.Log,
 		startChan: make(chan error),
@@ -80,14 +80,13 @@ func (s *Scraper) Stop() {
 }
 
 func (s *Scraper) up(ctx context.Context) {
-	workers := *s.config.Workers
-
-	workChan := make(chan Resource, workers*10)
+	workers := *s.scraper.Spec.Workers
+	workChan := make(chan Resource, workers)
 	defer close(workChan)
 
 	d := NewDiscovery(DiscoveryOpts{
 		Client:   s.client,
-		Config:   s.config,
+		Scraper:  s.scraper,
 		Log:      s.log.WithValues("name", "discovery"),
 		WorkChan: workChan,
 	})
@@ -108,7 +107,7 @@ func (s *Scraper) up(ctx context.Context) {
 		s.log.Info("starting up worker", "id", i)
 		worker := NewWorker(
 			workChan,
-			s.config,
+			d.scraper.Spec,
 			s.log.WithValues("worker", i),
 			outputs,
 		)
@@ -126,7 +125,7 @@ func (s *Scraper) up(ctx context.Context) {
 }
 
 func (s *Scraper) initOutputs() ([]output.Output, error) {
-	v := reflect.ValueOf(*s.config.Outputs)
+	v := reflect.ValueOf(*s.scraper.Spec.Outputs)
 
 	outputs := make([]output.Output, 0)
 

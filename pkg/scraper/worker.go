@@ -96,8 +96,6 @@ func (w *Worker) process(r Resource) {
 	for _, o := range w.outputs {
 		o.Send(m)
 	}
-
-	// update status?
 }
 
 func (w *Worker) scrape(r Resource) ([]metric.Metric, error) {

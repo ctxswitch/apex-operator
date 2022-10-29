@@ -19,11 +19,16 @@
 - [x] (resource) Allow common tags from k8s information (namespace, pod, node, etc..).
 - [x] (prometheus) Allow labels for tags
 - [x] Leader election
-- [ ] Status updates
+- [x] Status updates
+- [ ] Tag and metrics denylist
+- [ ] Tag and metrics allowlist
+- [ ] Metric
 - [ ] Event recorder
 - [ ] Add metrics
+- [ ] Container builds
 - [ ] Documentation
 --- MVP (complete)
+- [ ] Error channel to track errors from workers
 - [ ] (discover) Namespace restrictions for discovery
 - [ ] Node scraping
 - [ ] Custom endpointslice scraping
@@ -31,6 +36,6 @@
 - [ ] Support authentication for scraping
 - [ ] (v1) Handle webhook validations
 - [ ] Include/exclude metrics via matching
-- [ ] Clipping and clamping metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
+- [ ] Cutoff and clamping of metric values (https://docs.datadoghq.com/dashboards/functions/exclusion/)
 - [ ] (resource) Support field selectors for custom tags
 - [ ] Support protobuf prometheus scraping

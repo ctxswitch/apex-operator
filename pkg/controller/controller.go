@@ -76,11 +76,7 @@ func (r *Reconciler) predicates() predicate.Funcs {
 				return false
 			}
 
-			// Ignore metadata and status updates
-			if e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration() {
-				return true
-			}
-			return false
+			return e.ObjectNew.GetResourceVersion() != e.ObjectOld.GetResourceVersion()
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
 			return true

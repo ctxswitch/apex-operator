@@ -38,7 +38,7 @@ const (
 
 type DiscoveryOpts struct {
 	WorkChan chan Resource
-	Config   apexv1.ScraperSpec
+	Scraper  apexv1.Scraper
 	Client   client.Client
 	Log      logr.Logger
 }
@@ -46,7 +46,7 @@ type DiscoveryOpts struct {
 type Discovery struct {
 	client    client.Client
 	log       logr.Logger
-	config    apexv1.ScraperSpec
+	scraper   apexv1.Scraper
 	workChan  chan<- Resource
 	startChan chan error
 	stopChan  chan struct{}
@@ -57,7 +57,7 @@ func NewDiscovery(opts DiscoveryOpts) *Discovery {
 	return &Discovery{
 		client:    opts.Client,
 		log:       opts.Log,
-		config:    opts.Config,
+		scraper:   opts.Scraper,
 		startChan: make(chan error),
 		stopChan:  make(chan struct{}),
 		workChan:  opts.WorkChan,
@@ -81,7 +81,7 @@ func (d *Discovery) Stop() {
 func (d *Discovery) poll(ctx context.Context) {
 	d.startChan <- d.intervalRun(ctx)
 
-	interval := time.Duration(*d.config.ScrapeIntervalSeconds) * time.Second
+	interval := time.Duration(*d.scraper.Spec.ScrapeIntervalSeconds) * time.Second
 
 	ticker := time.NewTicker(interval)
 	for {
@@ -91,6 +91,7 @@ func (d *Discovery) poll(ctx context.Context) {
 		case <-ctx.Done():
 			// If we get an interrupt/kill, block until stop is called.
 			<-d.stopChan
+			return
 		case <-ticker.C:
 			_ = d.intervalRun(ctx)
 		}
@@ -98,14 +99,25 @@ func (d *Discovery) poll(ctx context.Context) {
 }
 
 func (d *Discovery) intervalRun(ctx context.Context) error {
+	var discovered int = 0
+	var enabled int = 0
 	d.log.Info("starting discovery run")
 	// These could be parallel
-	err := d.discoverPods(ctx)
+	err := d.discoverPods(ctx, &discovered, &enabled)
 	if err != nil {
 		return err
 	}
 
-	err = d.discoverServices(ctx)
+	err = d.discoverServices(ctx, &discovered, &enabled)
+	if err != nil {
+		return err
+	}
+
+	err = d.update(ctx, apexv1.ScraperStatus{
+		Discovered:  int64(discovered),
+		Enabled:     int64(enabled),
+		LastScraped: metav1.Now(),
+	})
 	if err != nil {
 		return err
 	}
@@ -113,8 +125,8 @@ func (d *Discovery) intervalRun(ctx context.Context) error {
 	return nil
 }
 
-func (d *Discovery) discoverPods(ctx context.Context) error {
-	selector := labels.SelectorFromSet(d.config.Selector.MatchLabels)
+func (d *Discovery) discoverPods(ctx context.Context, discovered *int, enabled *int) error {
+	selector := labels.SelectorFromSet(d.scraper.Spec.Selector.MatchLabels)
 	var list corev1.PodList
 	err := d.client.List(ctx, &list, &client.ListOptions{
 		LabelSelector: selector,
@@ -124,16 +136,19 @@ func (d *Discovery) discoverPods(ctx context.Context) error {
 	}
 
 	for _, pod := range list.Items {
-		r := FromPod(pod, d.config)
+		r := FromPod(pod, d.scraper.Spec)
 		if r.enabled {
+			*enabled++
 			d.workChan <- r
 		}
 	}
+
+	*discovered += len(list.Items)
 	return nil
 }
 
-func (d *Discovery) discoverServices(ctx context.Context) error {
-	selector := labels.SelectorFromSet(d.config.Selector.MatchLabels)
+func (d *Discovery) discoverServices(ctx context.Context, discovered *int, enabled *int) error {
+	selector := labels.SelectorFromSet(d.scraper.Spec.Selector.MatchLabels)
 	var list corev1.ServiceList
 	err := d.client.List(ctx, &list, &client.ListOptions{
 		LabelSelector: selector,
@@ -143,7 +158,7 @@ func (d *Discovery) discoverServices(ctx context.Context) error {
 	}
 
 	for _, svc := range list.Items {
-		r := FromService(svc, d.config)
+		r := FromService(svc, d.scraper.Spec)
 		if r.enabled {
 			// If we are a headless service or the discovery annotation
 			// is set, use the endpoints.
@@ -151,12 +166,15 @@ func (d *Discovery) discoverServices(ctx context.Context) error {
 				return d.discoverEndpoints(ctx, typesv1.NamespacedName{
 					Namespace: svc.GetNamespace(),
 					Name:      svc.GetName(),
-				}, svc.ObjectMeta, svc.GetAnnotations())
+				}, svc.ObjectMeta, discovered, enabled, svc.GetAnnotations())
 			} else {
+				*enabled++
 				d.workChan <- r
 			}
 		}
 	}
+
+	*discovered += len(list.Items)
 	return nil
 }
 
@@ -164,6 +182,8 @@ func (d *Discovery) discoverEndpoints(
 	ctx context.Context,
 	nn typesv1.NamespacedName,
 	obj metav1.ObjectMeta,
+	discovered *int,
+	enabled *int,
 	annotations map[string]string,
 ) error {
 	var endpoints corev1.Endpoints
@@ -174,13 +194,25 @@ func (d *Discovery) discoverEndpoints(
 
 	for _, sset := range endpoints.Subsets {
 		for _, addr := range sset.Addresses {
-			r := FromEndpointAddress(addr, obj, annotations, d.config)
+			r := FromEndpointAddress(addr, obj, annotations, d.scraper.Spec)
 			// Redundant check since we only call this from the service
 			// right now.
 			if r.enabled {
+				*enabled++
 				d.workChan <- r
 			}
 		}
 	}
+
+	*discovered += len(endpoints.Subsets)
 	return nil
+}
+
+func (d *Discovery) update(ctx context.Context, status apexv1.ScraperStatus) error {
+	var scraper = apexv1.Scraper{}
+	d.scraper.DeepCopyInto(&scraper)
+	scraper.Status = status
+	err := d.client.Status().Update(ctx, &scraper, &client.UpdateOptions{})
+
+	return err
 }

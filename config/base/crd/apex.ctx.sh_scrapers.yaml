@@ -18,20 +18,14 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.version
-      name: Version
+    - jsonPath: .status.discovered
+      name: Discovered
       type: string
-    - jsonPath: .status.totalPods
-      name: Pods
+    - jsonPath: .status.enabled
+      name: Enabled
       type: string
-    - jsonPath: .status.totalServices
-      name: Services
-      type: string
-    - jsonPath: .status.erroredPods
-      name: Errors (pods)
-      type: string
-    - jsonPath: .status.erroredServices
-      name: Errors (services)
+    - jsonPath: .status.lastScraped
+      name: Last Scraped
       type: string
     name: v1
     schema:
@@ -156,34 +150,19 @@ spec:
             type: object
           status:
             properties:
-              errorPods:
+              discovered:
                 format: int64
                 type: integer
-              errorServices:
+              enabled:
                 format: int64
                 type: integer
-              okPods:
-                format: int64
-                type: integer
-              okServices:
-                format: int64
-                type: integer
-              totalPods:
-                format: int64
-                type: integer
-              totalServices:
-                format: int64
-                type: integer
-              version:
+              lastScraped:
+                format: date-time
                 type: string
             required:
-            - errorPods
-            - errorServices
-            - okPods
-            - okServices
-            - totalPods
-            - totalServices
-            - version
+            - discovered
+            - enabled
+            - lastScraped
             type: object
         required:
         - spec

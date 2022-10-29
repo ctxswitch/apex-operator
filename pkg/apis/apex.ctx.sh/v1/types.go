@@ -122,11 +122,9 @@ type ScraperSpec struct {
 // +k8s:defaulter-gen=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Namespaced,shortName=sx,singular=scraper
-// +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-// +kubebuilder:printcolumn:name="Pods",type="string",JSONPath=".status.totalPods"
-// +kubebuilder:printcolumn:name="Services",type="string",JSONPath=".status.totalServices"
-// +kubebuilder:printcolumn:name="Errors (pods)",type="string",JSONPath=".status.erroredPods"
-// +kubebuilder:printcolumn:name="Errors (services)",type="string",JSONPath=".status.erroredServices"
+// +kubebuilder:printcolumn:name="Discovered",type="string",JSONPath=".status.discovered"
+// +kubebuilder:printcolumn:name="Enabled",type="string",JSONPath=".status.enabled"
+// +kubebuilder:printcolumn:name="Last Scraped",type="string",JSONPath=".status.lastScraped"
 type Scraper struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -145,11 +143,7 @@ type ScraperList struct {
 }
 
 type ScraperStatus struct {
-	Version       string `json:"version"`
-	TotalPods     int64  `json:"totalPods"`
-	TotalServices int64  `json:"totalServices"`
-	OkPods        int64  `json:"okPods"`
-	OkServices    int64  `json:"okServices"`
-	ErrorPods     int64  `json:"errorPods"`
-	ErrorServices int64  `json:"errorServices"`
+	Discovered  int64       `json:"discovered"`
+	Enabled     int64       `json:"enabled"`
+	LastScraped metav1.Time `json:"lastScraped"`
 }

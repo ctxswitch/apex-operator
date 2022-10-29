@@ -7,11 +7,4 @@ commonAnnotations:
   apex.ctx.sh/support: "https://github.com/ctxswitch/apex-operator/issues"
 
 resources:
-  - crd/apex.ctx.sh_scrapers.yaml
-  - ../webhook
-  - namespace.yaml
-  - service-account.yaml
-  - cluster-role.yaml
-  - cluster-role-binding.yaml
-  - service.yaml
-  - deployment.yaml
+  - manifests.yaml
