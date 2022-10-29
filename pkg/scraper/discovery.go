@@ -191,6 +191,7 @@ func (d *Discovery) discoverEndpoints(
 	if err != nil {
 		return err
 	}
+	*discovered += len(endpoints.Subsets)
 
 	for _, sset := range endpoints.Subsets {
 		for _, addr := range sset.Addresses {
