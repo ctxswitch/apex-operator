@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 
+	"ctx.sh/apex"
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/controller"
 	"ctx.sh/apex-operator/pkg/scraper"
@@ -38,12 +39,33 @@ func main() {
 
 	ctx := ctrl.SetupSignalHandler()
 
+	metrics := apex.New(apex.MetricsOpts{
+		Separator: '_',
+		// make me configurable
+		Port:           9090,
+		ConstantLabels: []string{"controller", "apex.ctx.sh"},
+		PanicOnError:   true,
+	})
+	// Need handle starts for apex-go a bit better, allow context
+	// and orchestrate shutdown better.
+	go func() {
+		err := metrics.Start()
+		if err != nil {
+			setupLog.Error(err, "unable to start prometheus")
+			os.Exit(1)
+		}
+	}()
+
 	ctrl.SetLogger(zap.New())
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		Port:               9443,
-		MetricsBindAddress: ":9090",
+		Scheme: scheme,
+		Port:   9443,
+		// I was hoping that controller-runtime would give access
+		// to the underlying registry or registerer to get any potential
+		// builtin metrics (don't know if there is any tbh), but there
+		// is no access, so take it over.
+		MetricsBindAddress: "0",
 		LeaderElection:     leaderElection,
 		LeaderElectionID:   "apex-operator-lock",
 	})
@@ -56,6 +78,7 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      mgr.GetLogger().WithValues("controller", "apex"),
 		Scrapers: scraper.NewManager(),
+		Metrics:  metrics,
 	}
 
 	err = reconciler.SetupWithManager(mgr)

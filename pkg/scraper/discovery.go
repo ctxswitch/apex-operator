@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"ctx.sh/apex"
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -41,11 +42,13 @@ type DiscoveryOpts struct {
 	Scraper  apexv1.Scraper
 	Client   client.Client
 	Log      logr.Logger
+	Metrics  *apex.Metrics
 }
 
 type Discovery struct {
 	client    client.Client
 	log       logr.Logger
+	metrics   *apex.Metrics
 	scraper   apexv1.Scraper
 	workChan  chan<- Resource
 	startChan chan error
@@ -57,6 +60,7 @@ func NewDiscovery(opts DiscoveryOpts) *Discovery {
 	return &Discovery{
 		client:    opts.Client,
 		log:       opts.Log,
+		metrics:   opts.Metrics,
 		scraper:   opts.Scraper,
 		startChan: make(chan error),
 		stopChan:  make(chan struct{}),
@@ -99,9 +103,13 @@ func (d *Discovery) poll(ctx context.Context) {
 }
 
 func (d *Discovery) intervalRun(ctx context.Context) error {
+	timer := d.metrics.HistogramTimer("interval_seconds", d.scraper.Name)
+	defer timer.ObserveDuration()
+
 	var discovered int = 0
 	var enabled int = 0
 	d.log.Info("starting discovery run")
+	d.metrics.CounterInc("run_total", d.scraper.Name)
 	// These could be parallel
 	err := d.discoverPods(ctx, &discovered, &enabled)
 	if err != nil {
@@ -144,6 +152,7 @@ func (d *Discovery) discoverPods(ctx context.Context, discovered *int, enabled *
 	}
 
 	*discovered += len(list.Items)
+	d.metrics.GaugeSet("pods", float64(*discovered), d.scraper.Name)
 	return nil
 }
 
@@ -175,6 +184,7 @@ func (d *Discovery) discoverServices(ctx context.Context, discovered *int, enabl
 	}
 
 	*discovered += len(list.Items)
+	d.metrics.GaugeSet("services", float64(*discovered), d.scraper.Name)
 	return nil
 }
 
@@ -205,6 +215,7 @@ func (d *Discovery) discoverEndpoints(
 	}
 
 	*discovered += len(endpoints.Subsets)
+	d.metrics.GaugeSet("pods", float64(*discovered), d.scraper.Name)
 	return nil
 }
 

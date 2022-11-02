@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 
+	"ctx.sh/apex"
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/scraper"
 	"github.com/go-logr/logr"
@@ -42,6 +43,7 @@ type Reconciler struct {
 	Log      logr.Logger
 	Mgr      ctrl.Manager
 	Scrapers *scraper.Manager
+	Metrics  *apex.Metrics
 }
 
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
@@ -59,16 +61,19 @@ func (r *Reconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.
 		request:  request,
 		ctx:      ctx,
 		log:      r.Log.WithValues("name", request.Name, "namespace", request.Namespace),
+		metrics:  r.Metrics,
 		recorder: r.Mgr.GetEventRecorderFor("ApexOperator"),
 		observed: NewObservedState(),
 		scrapers: r.Scrapers,
 	}
+	r.Metrics.CounterInc("reconcile_total")
 	return handler.reconcile(request)
 }
 
 func (r *Reconciler) predicates() predicate.Funcs {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
+			r.Metrics.CounterInc("reconcile_update_total")
 			if e.ObjectOld == nil {
 				return false
 			}
@@ -79,9 +84,11 @@ func (r *Reconciler) predicates() predicate.Funcs {
 			return e.ObjectNew.GetResourceVersion() != e.ObjectOld.GetResourceVersion()
 		},
 		CreateFunc: func(e event.CreateEvent) bool {
+			r.Metrics.CounterInc("reconcile_create_total")
 			return true
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
+			r.Metrics.CounterInc("reconcile_delete_total")
 			return true
 		},
 	}
@@ -95,6 +102,7 @@ type Handler struct {
 	recorder record.EventRecorder
 	observed ObservedState
 	scrapers *scraper.Manager
+	metrics  *apex.Metrics
 }
 
 func (h *Handler) reconcile(request ctrl.Request) (ctrl.Result, error) {
@@ -118,6 +126,7 @@ func (h *Handler) reconcile(request ctrl.Request) (ctrl.Result, error) {
 		recorder: h.recorder,
 		observed: h.observed,
 		scrapers: h.scrapers,
+		metrics:  h.metrics,
 	}
 
 	return scraperReconciler.reconcile(h.ctx, request)

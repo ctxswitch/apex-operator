@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"sync"
 
+	"ctx.sh/apex"
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/output"
 	"ctx.sh/apex-operator/pkg/output/datadog"
@@ -38,6 +39,7 @@ type ScraperOpts struct {
 	Client  client.Client
 	Context context.Context
 	Log     logr.Logger
+	Metrics *apex.Metrics
 }
 
 type Scraper struct {
@@ -45,6 +47,7 @@ type Scraper struct {
 	client    client.Client
 	cancel    context.CancelFunc
 	log       logr.Logger
+	metrics   *apex.Metrics
 	scraper   apexv1.Scraper
 	startChan chan error
 	stopChan  chan struct{}
@@ -57,6 +60,7 @@ func NewScraper(opts ScraperOpts) *Scraper {
 		scraper:   opts.Scraper,
 		client:    opts.Client,
 		log:       opts.Log,
+		metrics:   opts.Metrics,
 		startChan: make(chan error),
 		stopChan:  make(chan struct{}),
 	}
@@ -88,6 +92,7 @@ func (s *Scraper) up(ctx context.Context) {
 		Client:   s.client,
 		Scraper:  s.scraper,
 		Log:      s.log.WithValues("name", "discovery"),
+		Metrics:  s.metrics.WithPrefix("discovery").WithLabels("name"),
 		WorkChan: workChan,
 	})
 	if err := <-d.Start(ctx); err != nil {
@@ -106,9 +111,11 @@ func (s *Scraper) up(ctx context.Context) {
 	for i := 0; i < int(workers); i++ {
 		s.log.Info("starting up worker", "id", i)
 		worker := NewWorker(
+			d.scraper.Name,
 			workChan,
 			d.scraper.Spec,
 			s.log.WithValues("worker", i),
+			s.metrics.WithPrefix("worker").WithLabels("name"),
 			outputs,
 		)
 		wg.Add(1)

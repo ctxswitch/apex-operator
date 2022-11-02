@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"time"
 
@@ -55,19 +56,14 @@ func NewHandlers(logger *zap.Logger, metrics *apex.Metrics) *Handlers {
 }
 
 func (h *Handlers) DefaultHandler() http.HandlerFunc {
-	labels := apex.Labels{
-		"func":   "DefaultHandler",
-		"region": "us-east-1",
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		timer := h.metrics.HistogramTimer("latency", labels, histogramOpts)
+		timer := h.metrics.HistogramTimer("latency")
 		defer timer.ObserveDuration()
 
 		h.logger.Info("request recieved", zap.String("uri", r.RequestURI), zap.String("method", r.Method))
 		defer r.Body.Close()
 
-		h.metrics.SummaryObserve("test_summary", random(0, 10), labels, summaryOpts)
+		h.metrics.SummaryObserve("test_summary", random(0, 10))
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -75,13 +71,12 @@ func (h *Handlers) DefaultHandler() http.HandlerFunc {
 
 func (h *Handlers) Observe(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		labels := apex.Labels{
-			"region": "us-east-1",
-		}
 		m := httpsnoop.CaptureMetrics(next, w, r)
-		h.metrics.GaugeSet("response_code", float64(m.Code), labels)
-		h.metrics.GaugeSet("response_size", float64(m.Written), labels)
-		h.metrics.SummaryObserve("response_duration", float64(m.Duration), labels, summaryOpts)
+
+		code := strconv.FormatInt(int64(m.Code), 10)
+		h.metrics.WithLabels("code").CounterInc("response_code", code)
+		h.metrics.GaugeSet("response_size", float64(m.Written))
+		h.metrics.SummaryObserve("response_duration", float64(m.Duration))
 
 	})
 }
@@ -103,12 +98,11 @@ func main() {
 	logger.Info("starting server")
 
 	metrics := apex.New(apex.MetricsOpts{
-		Namespace:    "apex",
-		Subsystem:    "example",
-		Separator:    ':',
-		PanicOnError: true,
-		Port:         9090,
-	})
+		Separator:      ':',
+		PanicOnError:   true,
+		Port:           9090,
+		ConstantLabels: []string{"region", "us-east-1"},
+	}).WithPrefix("apex", "example")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
