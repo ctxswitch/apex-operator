@@ -45,6 +45,10 @@ var requeueResult reconcile.Result = ctrl.Result{
 
 func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	metrics := r.metrics.WithPrefix("reconcile").WithLabels("name", "namespace")
+
+	timer := metrics.HistogramTimer("reconcile_seconds", request.Name, request.Namespace)
+	defer timer.ObserveDuration()
+
 	metrics.CounterInc("request_total", request.Name, request.Namespace)
 
 	if r.observed.scraper == nil {

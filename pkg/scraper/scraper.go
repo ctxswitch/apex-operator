@@ -115,7 +115,7 @@ func (s *Scraper) up(ctx context.Context) {
 			workChan,
 			d.scraper.Spec,
 			s.log.WithValues("worker", i),
-			d.metrics.WithPrefix("output").WithLabels("name"),
+			s.metrics.WithPrefix("worker").WithLabels("name"),
 			outputs,
 		)
 		wg.Add(1)

@@ -103,6 +103,9 @@ func (d *Discovery) poll(ctx context.Context) {
 }
 
 func (d *Discovery) intervalRun(ctx context.Context) error {
+	timer := d.metrics.HistogramTimer("interval_seconds", d.scraper.Name)
+	defer timer.ObserveDuration()
+
 	var discovered int = 0
 	var enabled int = 0
 	d.log.Info("starting discovery run")

@@ -40,9 +40,11 @@ func main() {
 	ctx := ctrl.SetupSignalHandler()
 
 	metrics := apex.New(apex.MetricsOpts{
+		Separator: '_',
 		// make me configurable
 		Port:           9090,
 		ConstantLabels: []string{"controller", "apex.ctx.sh"},
+		PanicOnError:   true,
 	})
 	// Need handle starts for apex-go a bit better, allow context
 	// and orchestrate shutdown better.

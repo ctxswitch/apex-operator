@@ -101,13 +101,14 @@ func (w *Worker) process(r Resource) {
 		return
 	}
 
-	for _, o := range w.outputs {
-		// Come back through here and implement metrics in outputs.
-		o.Send(m)
-	}
+	// Better error handling needed here.
+	w.output(m)
 }
 
 func (w *Worker) scrape(r Resource) ([]metric.Metric, error) {
+	timer := w.metrics.HistogramTimer("scrape_seconds", w.name)
+	defer timer.ObserveDuration()
+
 	input := Prometheus{
 		Url:    r.URL(),
 		Client: w.httpClient,
@@ -122,4 +123,14 @@ func (w *Worker) scrape(r Resource) ([]metric.Metric, error) {
 
 	w.metrics.CounterInc("scraped_success_total", w.name)
 	return m, nil
+}
+
+func (w *Worker) output(m []metric.Metric) {
+	timer := w.metrics.HistogramTimer("output_seconds", w.name)
+	defer timer.ObserveDuration()
+
+	for _, o := range w.outputs {
+		// Come back through here and implement metrics in outputs.
+		o.Send(m)
+	}
 }

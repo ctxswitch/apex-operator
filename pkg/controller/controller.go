@@ -61,6 +61,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.
 		request:  request,
 		ctx:      ctx,
 		log:      r.Log.WithValues("name", request.Name, "namespace", request.Namespace),
+		metrics:  r.Metrics,
 		recorder: r.Mgr.GetEventRecorderFor("ApexOperator"),
 		observed: NewObservedState(),
 		scrapers: r.Scrapers,
