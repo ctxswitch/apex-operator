@@ -152,7 +152,7 @@ func (d *Discovery) discoverPods(ctx context.Context, discovered *int, enabled *
 	}
 
 	*discovered += len(list.Items)
-	d.metrics.GaugeSet("pods_total", float64(*discovered), d.scraper.Name)
+	d.metrics.GaugeSet("pods", float64(*discovered), d.scraper.Name)
 	return nil
 }
 
@@ -184,7 +184,7 @@ func (d *Discovery) discoverServices(ctx context.Context, discovered *int, enabl
 	}
 
 	*discovered += len(list.Items)
-	d.metrics.GaugeSet("services_total", float64(*discovered), d.scraper.Name)
+	d.metrics.GaugeSet("services", float64(*discovered), d.scraper.Name)
 	return nil
 }
 
@@ -215,7 +215,7 @@ func (d *Discovery) discoverEndpoints(
 	}
 
 	*discovered += len(endpoints.Subsets)
-	d.metrics.GaugeSet("pods_total", float64(*discovered), d.scraper.Name)
+	d.metrics.GaugeSet("pods", float64(*discovered), d.scraper.Name)
 	return nil
 }
 
