@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"ctx.sh/apex"
 	apexv1 "ctx.sh/apex-operator/pkg/apis/apex.ctx.sh/v1"
 	"ctx.sh/apex-operator/pkg/metric"
 	"ctx.sh/apex-operator/pkg/output"
@@ -33,9 +34,11 @@ const (
 )
 
 type Worker struct {
+	name       string
 	httpClient http.Client
 	config     apexv1.ScraperSpec
 	log        logr.Logger
+	metrics    *apex.Metrics
 	outputs    []output.Output
 	workChan   <-chan Resource
 	stopChan   chan struct{}
@@ -43,18 +46,22 @@ type Worker struct {
 }
 
 func NewWorker(
+	name string,
 	workChan <-chan Resource,
 	config apexv1.ScraperSpec,
 	log logr.Logger,
+	metrics *apex.Metrics,
 	outputs []output.Output,
 ) *Worker {
 	return &Worker{
+		name: name,
 		httpClient: http.Client{
 			Timeout: DefaultTimeout,
 		},
 		config:   config,
 		workChan: workChan,
 		log:      log,
+		metrics:  metrics,
 		outputs:  outputs,
 	}
 }
@@ -83,6 +90,7 @@ func (w *Worker) poll(ctx context.Context) {
 }
 
 func (w *Worker) process(r Resource) {
+	w.metrics.CounterInc("processed_total", w.name)
 	if !r.enabled {
 		return
 	}
@@ -94,6 +102,7 @@ func (w *Worker) process(r Resource) {
 	}
 
 	for _, o := range w.outputs {
+		// Come back through here and implement metrics in outputs.
 		o.Send(m)
 	}
 }
@@ -104,10 +113,13 @@ func (w *Worker) scrape(r Resource) ([]metric.Metric, error) {
 		Client: w.httpClient,
 	}
 
+	w.metrics.CounterInc("scraped_total", w.name)
 	m, err := input.Get(r.tags)
 	if err != nil {
+		w.metrics.CounterInc("scraped_error_total", w.name)
 		return nil, err
 	}
 
+	w.metrics.CounterInc("scraped_success_total", w.name)
 	return m, nil
 }

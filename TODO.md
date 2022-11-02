@@ -22,7 +22,7 @@
 - [x] Status updates
 - [ ] Tag and metrics denylist
 - [ ] Tag and metrics allowlist
-- [ ] Metric
+- [x] Metrics
 - [ ] Event recorder
 - [ ] Add metrics
 - [ ] Container builds

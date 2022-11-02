@@ -20,6 +20,7 @@ import (
 	"context"
 	"time"
 
+	"ctx.sh/apex"
 	"ctx.sh/apex-operator/pkg/scraper"
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/tools/record"
@@ -34,6 +35,7 @@ type ScraperReconciler struct {
 	observed ObservedState
 	recorder record.EventRecorder
 	scrapers *scraper.Manager
+	metrics  *apex.Metrics
 }
 
 var requeueResult reconcile.Result = ctrl.Result{
@@ -42,7 +44,11 @@ var requeueResult reconcile.Result = ctrl.Result{
 }
 
 func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
+	metrics := r.metrics.WithPrefix("reconcile").WithLabels("name", "namespace")
+	metrics.CounterInc("request_total", request.Name, request.Namespace)
+
 	if r.observed.scraper == nil {
+		metrics.CounterInc("request_cleanup_total", request.Name, request.Namespace)
 		r.log.Info("the scraper has been deleted, ensuring cleanup")
 		r.scrapers.Remove(request.NamespacedName)
 		return ctrl.Result{}, nil
@@ -55,12 +61,15 @@ func (r *ScraperReconciler) reconcile(ctx context.Context, request ctrl.Request)
 		Scraper: *r.observed.scraper.DeepCopy(),
 		Client:  r.client,
 		Log:     r.log.WithValues("scraper", request.NamespacedName),
+		Metrics: r.metrics,
 	})
 	if err != nil {
 		// Later we can get more explicit about what is a retryable
 		// error in the scraper start.
+		metrics.CounterInc("request_error_total", request.Name, request.Namespace)
 		return requeueResult, err
 	}
 
+	metrics.CounterInc("request_success_total", request.Name, request.Namespace)
 	return ctrl.Result{}, nil
 }
